@@ -1,0 +1,75 @@
+{
+  "$defs": {
+    "Money": {
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "default": "USDC",
+          "title": "Currency",
+          "type": "string"
+        },
+        "value": {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "Money",
+      "type": "object"
+    }
+  },
+  "$id": "https://sufficia.dev/schemas/intent.v1.json",
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "evidence_budget": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Money"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "intent_id": {
+      "title": "Intent Id",
+      "type": "string"
+    },
+    "network": {
+      "default": "monad",
+      "title": "Network",
+      "type": "string"
+    },
+    "protected_amount": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Money"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "text": {
+      "title": "Text",
+      "type": "string"
+    }
+  },
+  "required": [
+    "intent_id",
+    "text",
+    "created_at"
+  ],
+  "title": "Intent",
+  "type": "object"
+}

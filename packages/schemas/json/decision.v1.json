@@ -1,0 +1,562 @@
+{
+  "$defs": {
+    "AuthorityWindow": {
+      "additionalProperties": false,
+      "properties": {
+        "bounded_by": {
+          "title": "Bounded By",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "issued_at": {
+          "format": "date-time",
+          "title": "Issued At",
+          "type": "string"
+        },
+        "ttl_seconds": {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "title": "Ttl Seconds",
+          "type": "string"
+        }
+      },
+      "required": [
+        "issued_at",
+        "expires_at",
+        "ttl_seconds",
+        "bounded_by"
+      ],
+      "title": "AuthorityWindow",
+      "type": "object"
+    },
+    "DecisionState": {
+      "description": "The five semantic outcomes of the Decision Gate (Document 02 \u00a79).",
+      "enum": [
+        "AUTHORIZE",
+        "DENY",
+        "ABSTAIN",
+        "REFRESH",
+        "ESCALATE"
+      ],
+      "title": "DecisionState",
+      "type": "string"
+    },
+    "EvidenceAssessment": {
+      "additionalProperties": false,
+      "properties": {
+        "age_seconds": {
+          "anyOf": [
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Age Seconds"
+        },
+        "evidence_id": {
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expires At"
+        },
+        "item_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Item Hash"
+        },
+        "normalized_value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Normalized Value"
+        },
+        "reason_codes": {
+          "items": {
+            "$ref": "#/$defs/ReasonCode"
+          },
+          "title": "Reason Codes",
+          "type": "array"
+        },
+        "requirement_id": {
+          "title": "Requirement Id",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/EvidenceStatus"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "requirement_id",
+        "status"
+      ],
+      "title": "EvidenceAssessment",
+      "type": "object"
+    },
+    "EvidenceStatus": {
+      "enum": [
+        "VALID",
+        "STALE",
+        "INVALID",
+        "CONFLICTED",
+        "DUPLICATE",
+        "MISSING"
+      ],
+      "title": "EvidenceStatus",
+      "type": "string"
+    },
+    "Operator": {
+      "enum": [
+        ">",
+        ">=",
+        "<",
+        "<=",
+        "==",
+        "!=",
+        "EXISTS",
+        "NOT_EXISTS",
+        "IN"
+      ],
+      "title": "Operator",
+      "type": "string"
+    },
+    "Reason": {
+      "additionalProperties": false,
+      "properties": {
+        "causes": {
+          "items": {
+            "$ref": "#/$defs/ReasonCode"
+          },
+          "title": "Causes",
+          "type": "array"
+        },
+        "claim": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Claim"
+        },
+        "code": {
+          "$ref": "#/$defs/ReasonCode"
+        },
+        "detail": {
+          "additionalProperties": true,
+          "title": "Detail",
+          "type": "object"
+        },
+        "message": {
+          "default": "",
+          "title": "Message",
+          "type": "string"
+        },
+        "observed": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed"
+        },
+        "required": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Required"
+        },
+        "requirement_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requirement Id"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "title": "Reason",
+      "type": "object"
+    },
+    "ReasonCode": {
+      "enum": [
+        "ALL_REQUIREMENTS_SATISFIED",
+        "MISSING_REQUIRED_EVIDENCE",
+        "INSUFFICIENT_EVIDENCE_COUNT",
+        "EVIDENCE_BUDGET_EXHAUSTED",
+        "EVIDENCE_STALE",
+        "CRITICAL_SOURCE_CONFLICT",
+        "THRESHOLD_NOT_MET",
+        "PROHIBITED_EVIDENCE_PRESENT",
+        "AUTHORITY_WINDOW_EXHAUSTED",
+        "INVALID_EVIDENCE_TYPE",
+        "INVALID_VALUE",
+        "INVALID_UNIT",
+        "INVALID_TIMESTAMP",
+        "FUTURE_TIMESTAMP",
+        "PROVENANCE_MISSING",
+        "CLAIM_MISMATCH",
+        "UNKNOWN_REQUIREMENT",
+        "CONTRACT_MISMATCH",
+        "SOURCE_NOT_PERMITTED",
+        "DUPLICATE_EVIDENCE",
+        "EVIDENCE_ID_COLLISION",
+        "INVALID_COST",
+        "SOURCE_UNAVAILABLE",
+        "PAYMENT_FAILED",
+        "RATE_LIMITED",
+        "INVALID_RESPONSE",
+        "MISSING_FIELD",
+        "BUDGET_EXCEEDED",
+        "SOURCE_NOT_CONFIGURED",
+        "EVIDENCE_AUTHORIZATION_REQUIRED",
+        "AUTHORIZATION_EXPIRED",
+        "ACTION_HASH_MISMATCH",
+        "AUTHORIZATION_ALREADY_CONSUMED",
+        "AUTHORIZATION_NOT_FOUND",
+        "UNAUTHORIZED_EXECUTOR",
+        "AUTHORITY_EXPANSION"
+      ],
+      "title": "ReasonCode",
+      "type": "string"
+    },
+    "RequirementChecks": {
+      "additionalProperties": false,
+      "properties": {
+        "conflict": {
+          "title": "Conflict",
+          "type": "boolean"
+        },
+        "fresh": {
+          "title": "Fresh",
+          "type": "boolean"
+        },
+        "present": {
+          "title": "Present",
+          "type": "boolean"
+        },
+        "provenance": {
+          "title": "Provenance",
+          "type": "boolean"
+        },
+        "threshold": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Threshold"
+        },
+        "valid_type": {
+          "title": "Valid Type",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "present",
+        "fresh",
+        "valid_type",
+        "provenance",
+        "conflict",
+        "threshold"
+      ],
+      "title": "RequirementChecks",
+      "type": "object"
+    },
+    "RequirementResult": {
+      "additionalProperties": false,
+      "properties": {
+        "checks": {
+          "$ref": "#/$defs/RequirementChecks"
+        },
+        "claim": {
+          "title": "Claim",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "human_reason": {
+          "default": "",
+          "title": "Human Reason",
+          "type": "string"
+        },
+        "observed_values": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Observed Values",
+          "type": "array"
+        },
+        "operator": {
+          "$ref": "#/$defs/Operator"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReasonCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        },
+        "required_expression": {
+          "title": "Required Expression",
+          "type": "string"
+        },
+        "requirement_id": {
+          "title": "Requirement Id",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/RequirementStatus"
+        }
+      },
+      "required": [
+        "requirement_id",
+        "claim",
+        "operator",
+        "required_expression",
+        "required",
+        "status",
+        "checks"
+      ],
+      "title": "RequirementResult",
+      "type": "object"
+    },
+    "RequirementStatus": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "UNKNOWN"
+      ],
+      "title": "RequirementStatus",
+      "type": "string"
+    }
+  },
+  "$id": "https://sufficia.dev/schemas/decision.v1.json",
+  "additionalProperties": false,
+  "properties": {
+    "authority_window": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AuthorityWindow"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "conflicts": {
+      "title": "Conflicts",
+      "type": "integer"
+    },
+    "contract_hash": {
+      "title": "Contract Hash",
+      "type": "string"
+    },
+    "contract_id": {
+      "title": "Contract Id",
+      "type": "string"
+    },
+    "coverage": {
+      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+      "title": "Coverage",
+      "type": "string"
+    },
+    "decision_id": {
+      "title": "Decision Id",
+      "type": "string"
+    },
+    "engine_version": {
+      "title": "Engine Version",
+      "type": "string"
+    },
+    "evaluated_at": {
+      "format": "date-time",
+      "title": "Evaluated At",
+      "type": "string"
+    },
+    "evidence_assessments": {
+      "items": {
+        "$ref": "#/$defs/EvidenceAssessment"
+      },
+      "title": "Evidence Assessments",
+      "type": "array"
+    },
+    "evidence_cost_usd": {
+      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+      "title": "Evidence Cost Usd",
+      "type": "string"
+    },
+    "evidence_count": {
+      "title": "Evidence Count",
+      "type": "integer"
+    },
+    "evidence_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Ids",
+      "type": "array"
+    },
+    "evidence_root": {
+      "title": "Evidence Root",
+      "type": "string"
+    },
+    "fingerprint": {
+      "title": "Fingerprint",
+      "type": "string"
+    },
+    "freshness_pass": {
+      "title": "Freshness Pass",
+      "type": "boolean"
+    },
+    "headline": {
+      "title": "Headline",
+      "type": "string"
+    },
+    "independence_known": {
+      "title": "Independence Known",
+      "type": "boolean"
+    },
+    "independent_source_count": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Independent Source Count"
+    },
+    "intent_id": {
+      "title": "Intent Id",
+      "type": "string"
+    },
+    "reason_codes": {
+      "items": {
+        "$ref": "#/$defs/ReasonCode"
+      },
+      "title": "Reason Codes",
+      "type": "array"
+    },
+    "reasons": {
+      "items": {
+        "$ref": "#/$defs/Reason"
+      },
+      "title": "Reasons",
+      "type": "array"
+    },
+    "requirement_results": {
+      "items": {
+        "$ref": "#/$defs/RequirementResult"
+      },
+      "title": "Requirement Results",
+      "type": "array"
+    },
+    "state": {
+      "$ref": "#/$defs/DecisionState"
+    },
+    "summary": {
+      "title": "Summary",
+      "type": "string"
+    }
+  },
+  "required": [
+    "decision_id",
+    "contract_id",
+    "intent_id",
+    "state",
+    "reason_codes",
+    "reasons",
+    "headline",
+    "summary",
+    "requirement_results",
+    "evidence_assessments",
+    "evidence_ids",
+    "evidence_count",
+    "independent_source_count",
+    "independence_known",
+    "coverage",
+    "freshness_pass",
+    "conflicts",
+    "evidence_cost_usd",
+    "contract_hash",
+    "evidence_root",
+    "engine_version",
+    "evaluated_at",
+    "fingerprint"
+  ],
+  "title": "Decision",
+  "type": "object"
+}

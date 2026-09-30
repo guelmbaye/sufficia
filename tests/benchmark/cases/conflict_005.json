@@ -1,0 +1,53 @@
+{
+  "case_id": "conflict_005",
+  "category": "conflict",
+  "description": "Three liquidity sources, one outlier ($718,000, $705,000, $91,000). There is no majority vote: the most severe disagreement is reported and the case escalates.",
+  "tags": [
+    "conflict",
+    "multi-source",
+    "no-majority-vote"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_valid_01",
+    "liquidity_onchain_705000",
+    "liquidity_aggregator_91000",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "ESCALATE",
+    "reason_codes": [
+      "CRITICAL_SOURCE_CONFLICT"
+    ],
+    "failed_requirements": [
+      "req_liquidity"
+    ],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "UNKNOWN",
+      "req_price": "PASS"
+    },
+    "reason_detail": {
+      "req_liquidity": {
+        "evidence_a": "liquidity_aggregator_91000",
+        "evidence_b": "liquidity_valid_01",
+        "relative_difference": "0.87325906",
+        "conflict_count": 2
+      }
+    },
+    "evidence": {
+      "liquidity_valid_01": {
+        "status": "CONFLICTED"
+      },
+      "liquidity_onchain_705000": {
+        "status": "CONFLICTED"
+      },
+      "liquidity_aggregator_91000": {
+        "status": "CONFLICTED"
+      }
+    }
+  }
+}

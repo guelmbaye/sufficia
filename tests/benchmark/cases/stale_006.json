@@ -1,0 +1,44 @@
+{
+  "case_id": "stale_006",
+  "category": "stale",
+  "description": "Same evidence as valid_001 evaluated 40 s later: every mandatory observation has expired.",
+  "tags": [
+    "freshness",
+    "time-dependence"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:55Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_valid_01",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "REFRESH",
+    "reason_codes": [
+      "EVIDENCE_STALE"
+    ],
+    "failed_requirements": [
+      "req_inflow",
+      "req_liquidity",
+      "req_price"
+    ],
+    "requirement_status": {
+      "req_inflow": "UNKNOWN",
+      "req_liquidity": "UNKNOWN",
+      "req_price": "UNKNOWN"
+    },
+    "reason_detail": {
+      "req_inflow": {
+        "age_seconds": "45"
+      },
+      "req_liquidity": {
+        "age_seconds": "43"
+      },
+      "req_price": {
+        "age_seconds": "42"
+      }
+    }
+  }
+}

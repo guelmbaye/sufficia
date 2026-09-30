@@ -1,0 +1,52 @@
+{
+  "case_id": "stale_001",
+  "category": "stale",
+  "description": "Liquidity observation is 92 s old (max 30 s).",
+  "tags": [
+    "canonical",
+    "freshness"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_age_92s",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "REFRESH",
+    "reason_codes": [
+      "EVIDENCE_STALE"
+    ],
+    "failed_requirements": [
+      "req_liquidity"
+    ],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "UNKNOWN",
+      "req_price": "PASS"
+    },
+    "reason_detail": {
+      "req_liquidity": {
+        "age_seconds": "92",
+        "max_age_seconds": 30,
+        "evidence_id": "liquidity_age_92s"
+      }
+    },
+    "evidence": {
+      "liquidity_age_92s": {
+        "status": "STALE",
+        "reason_codes": [
+          "EVIDENCE_STALE"
+        ]
+      }
+    },
+    "metrics": {
+      "freshness_pass": false
+    },
+    "messages": {
+      "req_liquidity": "The available liquidity observation is 92 seconds old. The Evidence Contract allows a maximum age of 30 seconds."
+    }
+  }
+}

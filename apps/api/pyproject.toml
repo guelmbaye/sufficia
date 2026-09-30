@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sufficia"
+version = "1.0.0"
+description = "SUFFICIA — Evidence-Bound Execution for Autonomous Agents (API, decision engine, Monad execution)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.3",
+  "sqlalchemy>=2.0",
+  "alembic>=1.13",
+  "httpx>=0.27",
+  "web3>=7.0",
+  "eth-abi>=5.0",
+  "eth-utils>=4.0",
+  "eth-account>=0.13",
+]
+
+[project.optional-dependencies]
+local-evm = ["eth-tester[py-evm]>=0.12.0b1"]
+postgres = ["psycopg[binary]>=3.1"]
+dev = [
+  "pytest>=8",
+  "hypothesis>=6.100",
+  "eth-tester[py-evm]>=0.12.0b1",
+]
+
+[project.scripts]
+sufficia-api = "sufficia.cli:serve"
+sufficia-benchmark = "sufficia.benchmark.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["sufficia*"]
+
+[tool.setuptools.package-data]
+sufficia = ["blockchain/artifacts/*.json", "py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -m \"not live\""
+markers = [
+  "live: tests that call real external services (Monad RPC, Nansen, x402 facilitator). Excluded by default.",
+  "evm: tests that run EvidenceGate on an in-process py-evm chain.",
+]
+filterwarnings = [
+  "ignore::DeprecationWarning",
+]

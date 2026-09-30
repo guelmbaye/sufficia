@@ -1,0 +1,48 @@
+{
+  "case_id": "threshold_010",
+  "category": "threshold",
+  "description": "No averaging: two agreeing liquidity sources ($510,000 and $495,000, 2.9% apart) straddle the threshold. Every fresh observation must satisfy the requirement; the failing one denies.",
+  "tags": [
+    "threshold",
+    "multi-source",
+    "no-averaging"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_510000",
+    "liquidity_onchain_495000",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "DENY",
+    "reason_codes": [
+      "THRESHOLD_NOT_MET"
+    ],
+    "failed_requirements": [
+      "req_liquidity"
+    ],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "FAIL",
+      "req_price": "PASS"
+    },
+    "reason_detail": {
+      "req_liquidity": {
+        "observed_values": [
+          "495000"
+        ]
+      }
+    },
+    "evidence": {
+      "liquidity_510000": {
+        "status": "VALID"
+      },
+      "liquidity_onchain_495000": {
+        "status": "VALID"
+      }
+    }
+  }
+}

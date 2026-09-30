@@ -1,0 +1,58 @@
+{
+  "case_id": "missing_010",
+  "category": "missing",
+  "description": "minimum_items = 2 for liquidity (2-source contract). The second liquidity item is the same observation re-submitted under a new evidence id; deduplication keeps one, so only 1 of 2 required observations exists.",
+  "tags": [
+    "minimum-items",
+    "dedupe"
+  ],
+  "contract_fixture": "buy_token_2src_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "src2_inflow_valid_01",
+    "src2_liquidity_a",
+    "src2_liquidity_a_mirror",
+    "src2_price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "ABSTAIN",
+    "reason_codes": [
+      "MISSING_REQUIRED_EVIDENCE"
+    ],
+    "failed_requirements": [
+      "req_liquidity"
+    ],
+    "causes": {
+      "req_liquidity": []
+    },
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "UNKNOWN",
+      "req_price": "PASS"
+    },
+    "reason_detail": {
+      "req_liquidity": {
+        "valid_items": 1
+      }
+    },
+    "evidence": {
+      "src2_liquidity_a": {
+        "status": "VALID",
+        "reason_codes": []
+      },
+      "src2_liquidity_a_mirror": {
+        "status": "DUPLICATE",
+        "reason_codes": [
+          "DUPLICATE_EVIDENCE"
+        ]
+      }
+    },
+    "metrics": {
+      "coverage": 0.6667
+    },
+    "messages": {
+      "req_liquidity": "Only 1 valid available liquidity observation(s); at least 2 are required."
+    }
+  }
+}

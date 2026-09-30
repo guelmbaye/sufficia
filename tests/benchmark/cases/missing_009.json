@@ -1,0 +1,43 @@
+{
+  "case_id": "missing_009",
+  "category": "missing",
+  "description": "Liquidity observation references an unknown requirement id (req_liquidity_usd): rejected, claim unsupported.",
+  "tags": [
+    "missing",
+    "invalid-evidence",
+    "wrong-requirement"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_wrong_requirement",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "ABSTAIN",
+    "reason_codes": [
+      "MISSING_REQUIRED_EVIDENCE"
+    ],
+    "failed_requirements": [
+      "req_liquidity"
+    ],
+    "causes": {
+      "req_liquidity": []
+    },
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "UNKNOWN",
+      "req_price": "PASS"
+    },
+    "evidence": {
+      "liquidity_wrong_requirement": {
+        "status": "INVALID",
+        "reason_codes": [
+          "UNKNOWN_REQUIREMENT"
+        ]
+      }
+    }
+  }
+}

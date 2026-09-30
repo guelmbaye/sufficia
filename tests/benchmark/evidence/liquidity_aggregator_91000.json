@@ -1,0 +1,29 @@
+{
+  "evidence_id": "liquidity_aggregator_91000",
+  "contract_id": "ec_buy_token_v1",
+  "requirement_id": "req_liquidity",
+  "claim": {
+    "name": "available_liquidity",
+    "value": 91000,
+    "unit": "USD"
+  },
+  "temporal": {
+    "observed_at": "2026-10-05T18:42:12Z",
+    "received_at": "2026-10-05T18:42:12.350Z"
+  },
+  "source": {
+    "provider": "liquidity-aggregator-api",
+    "source_type": "API",
+    "mode": "SIMULATED",
+    "endpoint_id": "aggregate/liquidity/v2",
+    "source_family": "liquidity-aggregator-x"
+  },
+  "integrity": {
+    "request_hash": "0x573545a332f5ee93f1e71d5a0ad8373365eb0d59fc68654807f244d3e7f53534",
+    "response_hash": "0xeb575bdc8374c9810f31f8938122181ae3d01e16dc86d66a538f4f980080b7fd"
+  },
+  "economic": {
+    "cost": 0.02,
+    "currency": "USDC"
+  }
+}

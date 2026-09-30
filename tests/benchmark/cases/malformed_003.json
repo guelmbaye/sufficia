@@ -1,0 +1,55 @@
+{
+  "case_id": "malformed_003",
+  "category": "malformed",
+  "description": "Unit attack and missing timestamp: liquidity reported as 718000 BTC; inflow has observed_at = null.",
+  "tags": [
+    "malformed",
+    "unit-attack",
+    "timestamp"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_timestamp_null",
+    "liquidity_unit_btc",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "ABSTAIN",
+    "reason_codes": [
+      "MISSING_REQUIRED_EVIDENCE"
+    ],
+    "failed_requirements": [
+      "req_inflow",
+      "req_liquidity"
+    ],
+    "causes": {
+      "req_inflow": [
+        "INVALID_TIMESTAMP"
+      ],
+      "req_liquidity": [
+        "INVALID_UNIT"
+      ]
+    },
+    "requirement_status": {
+      "req_inflow": "UNKNOWN",
+      "req_liquidity": "UNKNOWN",
+      "req_price": "PASS"
+    },
+    "evidence": {
+      "inflow_timestamp_null": {
+        "status": "INVALID",
+        "reason_codes": [
+          "INVALID_TIMESTAMP"
+        ]
+      },
+      "liquidity_unit_btc": {
+        "status": "INVALID",
+        "reason_codes": [
+          "INVALID_UNIT"
+        ]
+      }
+    }
+  }
+}

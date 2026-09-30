@@ -1,0 +1,29 @@
+{
+  "evidence_id": "inflow_age_31s",
+  "contract_id": "ec_buy_token_v1",
+  "requirement_id": "req_inflow",
+  "claim": {
+    "name": "smart_money_inflow_24h",
+    "value": 1340000,
+    "unit": "USD"
+  },
+  "temporal": {
+    "observed_at": "2026-10-05T18:41:44Z",
+    "received_at": "2026-10-05T18:41:44.350Z"
+  },
+  "source": {
+    "provider": "smartmoney-api",
+    "source_type": "API",
+    "mode": "SIMULATED",
+    "endpoint_id": "smart-money/inflow-24h/v1",
+    "source_family": "smartmoney-indexer-a"
+  },
+  "integrity": {
+    "request_hash": "0x37e01952c69ad0b641eb3c101070b301a63cbd4dd799de3824f52da9b915aa4b",
+    "response_hash": "0x39baad0a7891f11b4976381a494e25d06edcd2a5dfb95b744dad8eaca4c59b2d"
+  },
+  "economic": {
+    "cost": 0.05,
+    "currency": "USDC"
+  }
+}

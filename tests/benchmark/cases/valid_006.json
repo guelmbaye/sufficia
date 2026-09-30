@@ -1,0 +1,47 @@
+{
+  "case_id": "valid_006",
+  "category": "valid",
+  "description": "Conflict boundary: liquidity sources $1,000,000 and $900,000 are exactly 10.0% apart; a conflict requires a relative difference strictly greater than the 10% tolerance. Inflow $1,000,000.01 is just above its threshold.",
+  "tags": [
+    "boundary",
+    "conflict-tolerance",
+    "threshold"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_1000000_01",
+    "liquidity_1000000",
+    "liquidity_onchain_900000",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "AUTHORIZE",
+    "reason_codes": [
+      "ALL_REQUIREMENTS_SATISFIED"
+    ],
+    "failed_requirements": [],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "PASS",
+      "req_price": "PASS"
+    },
+    "authority_expires_at": "2026-10-05T18:42:40Z",
+    "authority_bounded_by": "EVIDENCE_EXPIRY:inflow_1000000_01",
+    "authority_ttl_seconds": 25,
+    "evidence": {
+      "liquidity_1000000": {
+        "status": "VALID",
+        "reason_codes": []
+      },
+      "liquidity_onchain_900000": {
+        "status": "VALID",
+        "reason_codes": []
+      }
+    },
+    "metrics": {
+      "conflicts": 0
+    }
+  }
+}

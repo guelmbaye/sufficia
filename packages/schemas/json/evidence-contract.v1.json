@@ -1,0 +1,326 @@
+{
+  "$defs": {
+    "ActionType": {
+      "enum": [
+        "BUY",
+        "SELL",
+        "TRANSFER"
+      ],
+      "title": "ActionType",
+      "type": "string"
+    },
+    "AuthorizationPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "ttl_seconds": {
+          "default": 30,
+          "title": "Ttl Seconds",
+          "type": "integer"
+        }
+      },
+      "title": "AuthorizationPolicy",
+      "type": "object"
+    },
+    "ConflictPolicy": {
+      "enum": [
+        "ESCALATE",
+        "ABSTAIN"
+      ],
+      "title": "ConflictPolicy",
+      "type": "string"
+    },
+    "ContractPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "clock_skew_seconds": {
+          "default": 2,
+          "title": "Clock Skew Seconds",
+          "type": "integer"
+        },
+        "critical_conflict": {
+          "$ref": "#/$defs/DecisionState",
+          "default": "ESCALATE"
+        },
+        "failed_threshold": {
+          "$ref": "#/$defs/DecisionState",
+          "default": "DENY"
+        },
+        "minimum_required_evidence": {
+          "default": 3,
+          "title": "Minimum Required Evidence",
+          "type": "integer"
+        },
+        "missing_required": {
+          "$ref": "#/$defs/DecisionState",
+          "default": "ABSTAIN"
+        },
+        "stale_required": {
+          "$ref": "#/$defs/DecisionState",
+          "default": "REFRESH"
+        }
+      },
+      "title": "ContractPolicy",
+      "type": "object"
+    },
+    "DecisionState": {
+      "description": "The five semantic outcomes of the Decision Gate (Document 02 \u00a79).",
+      "enum": [
+        "AUTHORIZE",
+        "DENY",
+        "ABSTAIN",
+        "REFRESH",
+        "ESCALATE"
+      ],
+      "title": "DecisionState",
+      "type": "string"
+    },
+    "EconomicLimits": {
+      "additionalProperties": false,
+      "properties": {
+        "max_evidence_cost_usd": {
+          "default": "0.25",
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "title": "Max Evidence Cost Usd",
+          "type": "string"
+        },
+        "max_execution_value_usd": {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "title": "Max Execution Value Usd",
+          "type": "string"
+        }
+      },
+      "required": [
+        "max_execution_value_usd"
+      ],
+      "title": "EconomicLimits",
+      "type": "object"
+    },
+    "IntentAction": {
+      "additionalProperties": false,
+      "properties": {
+        "asset": {
+          "title": "Asset",
+          "type": "string"
+        },
+        "max_amount": {
+          "$ref": "#/$defs/Money"
+        },
+        "type": {
+          "$ref": "#/$defs/ActionType"
+        }
+      },
+      "required": [
+        "type",
+        "asset",
+        "max_amount"
+      ],
+      "title": "IntentAction",
+      "type": "object"
+    },
+    "Money": {
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "default": "USDC",
+          "title": "Currency",
+          "type": "string"
+        },
+        "value": {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "Money",
+      "type": "object"
+    },
+    "Operator": {
+      "enum": [
+        ">",
+        ">=",
+        "<",
+        "<=",
+        "==",
+        "!=",
+        "EXISTS",
+        "NOT_EXISTS",
+        "IN"
+      ],
+      "title": "Operator",
+      "type": "string"
+    },
+    "Requirement": {
+      "additionalProperties": false,
+      "properties": {
+        "claim": {
+          "title": "Claim",
+          "type": "string"
+        },
+        "conflict_policy": {
+          "$ref": "#/$defs/ConflictPolicy",
+          "default": "ESCALATE"
+        },
+        "conflict_tolerance": {
+          "default": "0.10",
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "title": "Conflict Tolerance",
+          "type": "string"
+        },
+        "expected": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "max_age_seconds": {
+          "default": 30,
+          "title": "Max Age Seconds",
+          "type": "integer"
+        },
+        "minimum_items": {
+          "default": 1,
+          "title": "Minimum Items",
+          "type": "integer"
+        },
+        "operator": {
+          "$ref": "#/$defs/Operator"
+        },
+        "origin": {
+          "default": "USER",
+          "title": "Origin",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "threshold": {
+          "anyOf": [
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Threshold"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "values": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Values"
+        }
+      },
+      "required": [
+        "id",
+        "claim",
+        "operator"
+      ],
+      "title": "Requirement",
+      "type": "object"
+    }
+  },
+  "$id": "https://sufficia.dev/schemas/evidence-contract.v1.json",
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "$ref": "#/$defs/IntentAction"
+    },
+    "authorization": {
+      "$ref": "#/$defs/AuthorizationPolicy"
+    },
+    "contract_id": {
+      "title": "Contract Id",
+      "type": "string"
+    },
+    "economic_limits": {
+      "$ref": "#/$defs/EconomicLimits"
+    },
+    "intent_id": {
+      "title": "Intent Id",
+      "type": "string"
+    },
+    "policy": {
+      "$ref": "#/$defs/ContractPolicy"
+    },
+    "policy_version": {
+      "default": 1,
+      "title": "Policy Version",
+      "type": "integer"
+    },
+    "requirements": {
+      "items": {
+        "$ref": "#/$defs/Requirement"
+      },
+      "title": "Requirements",
+      "type": "array"
+    },
+    "schema_version": {
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "contract_id",
+    "intent_id",
+    "action",
+    "requirements",
+    "economic_limits"
+  ],
+  "title": "EvidenceContract",
+  "type": "object"
+}

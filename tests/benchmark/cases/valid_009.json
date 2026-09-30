@@ -1,0 +1,38 @@
+{
+  "case_id": "valid_009",
+  "category": "valid",
+  "description": "Contract TTL bound: inflow and price observed at evaluation time, liquidity 1.5 s in the future (within the 2 s clock-skew allowance, treated as age 0). No evidence expires before the 30 s contract TTL.",
+  "tags": [
+    "contract-ttl",
+    "clock-skew"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_at_eval",
+    "liquidity_future_1_5s",
+    "price_at_eval"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "AUTHORIZE",
+    "reason_codes": [
+      "ALL_REQUIREMENTS_SATISFIED"
+    ],
+    "failed_requirements": [],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "PASS",
+      "req_price": "PASS"
+    },
+    "authority_expires_at": "2026-10-05T18:42:45Z",
+    "authority_bounded_by": "CONTRACT_TTL",
+    "authority_ttl_seconds": 30,
+    "evidence": {
+      "liquidity_future_1_5s": {
+        "status": "VALID",
+        "reason_codes": []
+      }
+    }
+  }
+}

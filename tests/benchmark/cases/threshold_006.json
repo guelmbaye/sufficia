@@ -1,0 +1,41 @@
+{
+  "case_id": "threshold_006",
+  "category": "threshold",
+  "description": "Negative smart-money inflow (a $250,000 net outflow) is a valid observation that fails the threshold.",
+  "tags": [
+    "threshold",
+    "negative-value"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_negative_250000",
+    "liquidity_valid_01",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "DENY",
+    "reason_codes": [
+      "THRESHOLD_NOT_MET"
+    ],
+    "failed_requirements": [
+      "req_inflow"
+    ],
+    "requirement_status": {
+      "req_inflow": "FAIL",
+      "req_liquidity": "PASS",
+      "req_price": "PASS"
+    },
+    "reason_detail": {
+      "req_inflow": {
+        "observed_values": [
+          "-250000"
+        ]
+      }
+    },
+    "messages": {
+      "req_inflow": "Smart-money inflow (24h) is -$250,000. The Evidence Contract requires more than $1,000,000."
+    }
+  }
+}

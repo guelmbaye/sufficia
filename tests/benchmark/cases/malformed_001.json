@@ -1,0 +1,47 @@
+{
+  "case_id": "malformed_001",
+  "category": "malformed",
+  "description": "Type attack: liquidity value is the text 'more than enough'. No interpretation turns it into a number.",
+  "tags": [
+    "malformed",
+    "type-attack"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_type_text",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "ABSTAIN",
+    "reason_codes": [
+      "MISSING_REQUIRED_EVIDENCE"
+    ],
+    "failed_requirements": [
+      "req_liquidity"
+    ],
+    "causes": {
+      "req_liquidity": [
+        "INVALID_EVIDENCE_TYPE"
+      ]
+    },
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "UNKNOWN",
+      "req_price": "PASS"
+    },
+    "evidence": {
+      "liquidity_type_text": {
+        "status": "INVALID",
+        "reason_codes": [
+          "INVALID_EVIDENCE_TYPE"
+        ]
+      }
+    },
+    "messages": {
+      "req_liquidity": "Required available liquidity evidence could not be established: the observed value has an invalid type."
+    }
+  }
+}

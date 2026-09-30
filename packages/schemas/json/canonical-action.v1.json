@@ -1,0 +1,142 @@
+{
+  "$defs": {
+    "ActionType": {
+      "enum": [
+        "BUY",
+        "SELL",
+        "TRANSFER"
+      ],
+      "title": "ActionType",
+      "type": "string"
+    },
+    "Money": {
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "default": "USDC",
+          "title": "Currency",
+          "type": "string"
+        },
+        "value": {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "Money",
+      "type": "object"
+    }
+  },
+  "$id": "https://sufficia.dev/schemas/canonical-action.v1.json",
+  "additionalProperties": false,
+  "description": "The exact economic action an authorization permits (Document 04 \u00a717).",
+  "properties": {
+    "action_type": {
+      "$ref": "#/$defs/ActionType"
+    },
+    "adapter": {
+      "title": "Adapter",
+      "type": "string"
+    },
+    "amount": {
+      "$ref": "#/$defs/Money"
+    },
+    "amount_decimals": {
+      "default": 6,
+      "title": "Amount Decimals",
+      "type": "integer"
+    },
+    "asset": {
+      "title": "Asset",
+      "type": "string"
+    },
+    "asset_in": {
+      "title": "Asset In",
+      "type": "string"
+    },
+    "asset_out": {
+      "title": "Asset Out",
+      "type": "string"
+    },
+    "chain_id": {
+      "title": "Chain Id",
+      "type": "integer"
+    },
+    "data": {
+      "default": "0x",
+      "title": "Data",
+      "type": "string"
+    },
+    "deadline": {
+      "title": "Deadline",
+      "type": "integer"
+    },
+    "description": {
+      "default": "",
+      "title": "Description",
+      "type": "string"
+    },
+    "gate_address": {
+      "title": "Gate Address",
+      "type": "string"
+    },
+    "max_amount_in": {
+      "title": "Max Amount In",
+      "type": "integer"
+    },
+    "min_amount_out": {
+      "title": "Min Amount Out",
+      "type": "integer"
+    },
+    "nonce": {
+      "title": "Nonce",
+      "type": "string"
+    },
+    "recipient": {
+      "title": "Recipient",
+      "type": "string"
+    },
+    "spend_raw": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Spend Raw"
+    },
+    "target": {
+      "title": "Target",
+      "type": "string"
+    },
+    "value": {
+      "default": 0,
+      "title": "Value",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "action_type",
+    "asset",
+    "amount",
+    "chain_id",
+    "gate_address",
+    "target",
+    "asset_in",
+    "max_amount_in",
+    "asset_out",
+    "min_amount_out",
+    "recipient",
+    "deadline",
+    "nonce",
+    "adapter"
+  ],
+  "title": "CanonicalAction",
+  "type": "object"
+}

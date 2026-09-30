@@ -1,0 +1,32 @@
+{
+  "case_id": "valid_004",
+  "category": "valid",
+  "description": "Operator boundary (>= contract): liquidity exactly $500,000 satisfies '>= $500,000'.",
+  "tags": [
+    "boundary",
+    "operator"
+  ],
+  "contract_fixture": "buy_token_gte_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "gte_inflow_valid_01",
+    "gte_liquidity_500000",
+    "gte_price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "AUTHORIZE",
+    "reason_codes": [
+      "ALL_REQUIREMENTS_SATISFIED"
+    ],
+    "failed_requirements": [],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "PASS",
+      "req_price": "PASS"
+    },
+    "authority_expires_at": "2026-10-05T18:42:40Z",
+    "authority_bounded_by": "EVIDENCE_EXPIRY:gte_inflow_valid_01",
+    "authority_ttl_seconds": 25
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "contractName": "RevertingTarget",
+  "sourceName": "test/mocks/RevertingTarget.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "code",
+          "type": "uint256"
+        }
+      ],
+      "name": "TargetAlwaysReverts",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "caller",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "calls",
+          "type": "uint256"
+        }
+      ],
+      "name": "Called",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "calls",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "fail",
+      "outputs": [],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "lastValue",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "ok",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x6080604052348015600e575f5ffd5b5061017c8061001c5f395ff3fe60806040526004361061003e575f3560e01c8063305f72b7146100425780634318383414610068578063a9cc47181461007d578063d909b40314610093575b5f5ffd5b34801561004d575f5ffd5b506100565f5481565b60405190815260200160405180910390f35b348015610073575f5ffd5b5061005660015481565b348015610088575f5ffd5b5061009161009b565b005b6100566100bb565b6040516330b51e2d60e11b8152602a600482015260240160405180910390fd5b5f60015f5f8282546100cd9190610121565b90915550503460018190555f5460405133927f54c605148cb0d8f53f3be5dab35fe97789da1987a4decb397a8e252630abf15b9261011392918252602082015260400190565b60405180910390a2505f5490565b8082018082111561014057634e487b7160e01b5f52601160045260245ffd5b9291505056fea26469706673582212202d91eb477e451e850b91b6c6e6b33930ba6ef02ef80d96bb05da9329584232bb64736f6c634300081c0033",
+  "deployedBytecode": "0x60806040526004361061003e575f3560e01c8063305f72b7146100425780634318383414610068578063a9cc47181461007d578063d909b40314610093575b5f5ffd5b34801561004d575f5ffd5b506100565f5481565b60405190815260200160405180910390f35b348015610073575f5ffd5b5061005660015481565b348015610088575f5ffd5b5061009161009b565b005b6100566100bb565b6040516330b51e2d60e11b8152602a600482015260240160405180910390fd5b5f60015f5f8282546100cd9190610121565b90915550503460018190555f5460405133927f54c605148cb0d8f53f3be5dab35fe97789da1987a4decb397a8e252630abf15b9261011392918252602082015260400190565b60405180910390a2505f5490565b8082018082111561014057634e487b7160e01b5f52601160045260245ffd5b9291505056fea26469706673582212202d91eb477e451e850b91b6c6e6b33930ba6ef02ef80d96bb05da9329584232bb64736f6c634300081c0033",
+  "compiler": {
+    "version": "0.8.28+commit.7893614a.Emscripten.clang",
+    "evmVersion": "cancun",
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    }
+  }
+}

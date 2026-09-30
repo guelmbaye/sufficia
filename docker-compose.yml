@@ -1,0 +1,39 @@
+# docker compose up --build            -> API on :8000 with SQLite + in-process EVM (demo)
+# docker compose --profile postgres up  -> same API backed by PostgreSQL
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      CHAIN_MODE: ${CHAIN_MODE:-LOCAL_EVM}
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////data/sufficia.db}
+    volumes:
+      - sufficia-data:/data
+      - ./deployments:/srv/deployments:ro
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    profiles: ["postgres"]
+    environment:
+      POSTGRES_USER: sufficia
+      POSTGRES_PASSWORD: sufficia
+      POSTGRES_DB: sufficia
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sufficia"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  sufficia-data:
+  pg-data:

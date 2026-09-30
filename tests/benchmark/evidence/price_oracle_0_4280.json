@@ -1,0 +1,35 @@
+{
+  "evidence_id": "price_oracle_0_4280",
+  "contract_id": "ec_buy_token_v1",
+  "requirement_id": "req_price",
+  "claim": {
+    "name": "asset_price",
+    "value": 0.4280,
+    "unit": "USD"
+  },
+  "temporal": {
+    "observed_at": "2026-10-05T18:42:13Z",
+    "received_at": "2026-10-05T18:42:13.350Z"
+  },
+  "source": {
+    "provider": "price-oracle-reader",
+    "source_type": "ORACLE",
+    "mode": "SIMULATED",
+    "endpoint_id": "oracle/latestRoundData",
+    "source_family": "oracle-feed-b",
+    "network": "monad-testnet"
+  },
+  "integrity": {
+    "request_hash": null,
+    "response_hash": "0x7f6bf2d5ca62948624463ac5f97dbb4d80483891659065b60c4819ec8f43fb92",
+    "chain_ref": {
+      "chain_id": 10143,
+      "block_number": 48123368,
+      "contract": "0x7a3c1e5f9b2d4a6c8e0f1a3b5c7d9e1f2a4b6c8d"
+    }
+  },
+  "economic": {
+    "cost": 0,
+    "currency": "USDC"
+  }
+}

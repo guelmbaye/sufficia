@@ -1,0 +1,55 @@
+{
+  "case_id": "stale_007",
+  "category": "stale",
+  "description": "Stale price plus a liquidity conflict: staleness takes precedence over conflict (REFRESH before ESCALATE).",
+  "tags": [
+    "precedence",
+    "freshness"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_valid_01",
+    "liquidity_onchain_91000",
+    "price_age_40s"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "REFRESH",
+    "reason_codes": [
+      "EVIDENCE_STALE"
+    ],
+    "failed_requirements": [
+      "req_price"
+    ],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "UNKNOWN",
+      "req_price": "UNKNOWN"
+    },
+    "reason_detail": {
+      "req_price": {
+        "age_seconds": "40"
+      }
+    },
+    "evidence": {
+      "liquidity_valid_01": {
+        "status": "CONFLICTED",
+        "reason_codes": [
+          "CRITICAL_SOURCE_CONFLICT"
+        ]
+      },
+      "liquidity_onchain_91000": {
+        "status": "CONFLICTED",
+        "reason_codes": [
+          "CRITICAL_SOURCE_CONFLICT"
+        ]
+      }
+    },
+    "metrics": {
+      "conflicts": 1,
+      "freshness_pass": false
+    }
+  }
+}

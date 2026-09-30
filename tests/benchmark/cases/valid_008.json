@@ -1,0 +1,32 @@
+{
+  "case_id": "valid_008",
+  "category": "valid",
+  "description": "Dynamic TTL with sub-second precision: price observed 28.5 s before evaluation -> 1.5 s of authority.",
+  "tags": [
+    "dynamic-ttl",
+    "boundary"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_valid_01",
+    "price_age_28_5s"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "AUTHORIZE",
+    "reason_codes": [
+      "ALL_REQUIREMENTS_SATISFIED"
+    ],
+    "failed_requirements": [],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "PASS",
+      "req_price": "PASS"
+    },
+    "authority_expires_at": "2026-10-05T18:42:16.500Z",
+    "authority_bounded_by": "EVIDENCE_EXPIRY:price_age_28_5s",
+    "authority_ttl_seconds": 1.5
+  }
+}

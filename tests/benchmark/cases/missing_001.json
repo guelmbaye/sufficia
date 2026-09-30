@@ -1,0 +1,32 @@
+{
+  "case_id": "missing_001",
+  "category": "missing",
+  "description": "Price evidence absent (no observation, no acquisition record).",
+  "tags": [
+    "missing"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "ABSTAIN",
+    "reason_codes": [
+      "MISSING_REQUIRED_EVIDENCE"
+    ],
+    "failed_requirements": [
+      "req_price"
+    ],
+    "causes": {
+      "req_price": []
+    },
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "PASS",
+      "req_price": "UNKNOWN"
+    }
+  }
+}

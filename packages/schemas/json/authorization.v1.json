@@ -1,0 +1,113 @@
+{
+  "$defs": {
+    "AuthorizationStatus": {
+      "enum": [
+        "ISSUED",
+        "ACTIVE",
+        "CONSUMED",
+        "EXPIRED",
+        "PUBLISH_FAILED"
+      ],
+      "title": "AuthorizationStatus",
+      "type": "string"
+    },
+    "Money": {
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "default": "USDC",
+          "title": "Currency",
+          "type": "string"
+        },
+        "value": {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "Money",
+      "type": "object"
+    }
+  },
+  "$id": "https://sufficia.dev/schemas/authorization.v1.json",
+  "additionalProperties": false,
+  "properties": {
+    "action_hash": {
+      "title": "Action Hash",
+      "type": "string"
+    },
+    "asset": {
+      "title": "Asset",
+      "type": "string"
+    },
+    "authorization_id": {
+      "title": "Authorization Id",
+      "type": "string"
+    },
+    "contract_hash": {
+      "title": "Contract Hash",
+      "type": "string"
+    },
+    "decision_id": {
+      "title": "Decision Id",
+      "type": "string"
+    },
+    "evidence_root": {
+      "title": "Evidence Root",
+      "type": "string"
+    },
+    "executor": {
+      "title": "Executor",
+      "type": "string"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "intent_id": {
+      "title": "Intent Id",
+      "type": "string"
+    },
+    "issued_at": {
+      "format": "date-time",
+      "title": "Issued At",
+      "type": "string"
+    },
+    "max_amount": {
+      "$ref": "#/$defs/Money"
+    },
+    "nonce": {
+      "title": "Nonce",
+      "type": "string"
+    },
+    "onchain_intent_id": {
+      "title": "Onchain Intent Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/AuthorizationStatus",
+      "default": "ISSUED"
+    }
+  },
+  "required": [
+    "authorization_id",
+    "decision_id",
+    "intent_id",
+    "onchain_intent_id",
+    "contract_hash",
+    "evidence_root",
+    "action_hash",
+    "executor",
+    "nonce",
+    "issued_at",
+    "expires_at",
+    "max_amount",
+    "asset"
+  ],
+  "title": "Authorization",
+  "type": "object"
+}

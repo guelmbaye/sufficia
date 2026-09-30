@@ -1,0 +1,36 @@
+{
+  "case_id": "valid_010",
+  "category": "valid",
+  "description": "Number formatting and provider variety: inflow written 2750000.50, onchain liquidity written 1.2e6, oracle price written 0.4280 (onchain/oracle provenance via chain reference instead of a request hash).",
+  "tags": [
+    "number-formatting",
+    "provenance"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_decimal_2750000_50",
+    "liquidity_onchain_1_2e6",
+    "price_oracle_0_4280"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "AUTHORIZE",
+    "reason_codes": [
+      "ALL_REQUIREMENTS_SATISFIED"
+    ],
+    "failed_requirements": [],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "PASS",
+      "req_price": "PASS"
+    },
+    "authority_expires_at": "2026-10-05T18:42:41Z",
+    "authority_bounded_by": "EVIDENCE_EXPIRY:inflow_decimal_2750000_50",
+    "authority_ttl_seconds": 26,
+    "metrics": {
+      "evidence_cost_usd": 0.05,
+      "independent_source_count": 3
+    }
+  }
+}

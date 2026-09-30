@@ -1,0 +1,19 @@
+{
+  "provider": "simulated-market",
+  "source_type": "API",
+  "claim": "asset_price",
+  "value": 0.428,
+  "unit": "USD",
+  "captured_at": "2026-09-30T15:03:48.415782Z",
+  "request_descriptor": {
+    "method": "GET",
+    "url": "sim://market/TOKEN-X/asset_price"
+  },
+  "response_body_b64": "eyJhc3NldCI6IlRPS0VOLVgiLCJjbGFpbSI6ImFzc2V0X3ByaWNlIiwibW9kZSI6IlNJTVVMQVRFRCIsIm9ic2VydmVkX2F0IjoiMjAyNi0wOS0zMFQxNTowMzo0OC40MTU3NThaIiwidW5pdCI6IlVTRCIsInZhbHVlIjowLjQyOCwidmVyc2lvbiI6MH0=",
+  "upstream_source": "simulated-market",
+  "source_family": "simulated-market",
+  "endpoint_id": "sim://market",
+  "network": null,
+  "original_mode": "SIMULATED",
+  "note": "SAMPLE captured from the local SIMULATED market (sufficia.evidence.simulated_market). This is NOT a capture of a real provider response; it only exercises the RECORDED path."
+}

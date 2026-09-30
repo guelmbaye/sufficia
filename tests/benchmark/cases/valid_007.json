@@ -1,0 +1,31 @@
+{
+  "case_id": "valid_007",
+  "category": "valid",
+  "description": "Dynamic TTL: inflow observed 25 s before evaluation expires 5 s after it; authority expires with it.",
+  "tags": [
+    "dynamic-ttl"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_age_25s",
+    "liquidity_valid_01",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "AUTHORIZE",
+    "reason_codes": [
+      "ALL_REQUIREMENTS_SATISFIED"
+    ],
+    "failed_requirements": [],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "PASS",
+      "req_price": "PASS"
+    },
+    "authority_expires_at": "2026-10-05T18:42:20Z",
+    "authority_bounded_by": "EVIDENCE_EXPIRY:inflow_age_25s",
+    "authority_ttl_seconds": 5
+  }
+}

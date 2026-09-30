@@ -1,0 +1,427 @@
+{
+  "$defs": {
+    "DecisionState": {
+      "description": "The five semantic outcomes of the Decision Gate (Document 02 \u00a79).",
+      "enum": [
+        "AUTHORIZE",
+        "DENY",
+        "ABSTAIN",
+        "REFRESH",
+        "ESCALATE"
+      ],
+      "title": "DecisionState",
+      "type": "string"
+    },
+    "Money": {
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "default": "USDC",
+          "title": "Currency",
+          "type": "string"
+        },
+        "value": {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "Money",
+      "type": "object"
+    },
+    "PaymentStatus": {
+      "enum": [
+        "REQUESTED",
+        "QUOTED",
+        "AUTHORIZED",
+        "VERIFIED",
+        "SETTLED",
+        "SIMULATED",
+        "REJECTED",
+        "BUDGET_EXCEEDED",
+        "INSUFFICIENT_FUNDS",
+        "ALLOWANCE_REQUIRED",
+        "SETTLEMENT_FAILED",
+        "TIMEOUT"
+      ],
+      "title": "PaymentStatus",
+      "type": "string"
+    },
+    "ReasonCode": {
+      "enum": [
+        "ALL_REQUIREMENTS_SATISFIED",
+        "MISSING_REQUIRED_EVIDENCE",
+        "INSUFFICIENT_EVIDENCE_COUNT",
+        "EVIDENCE_BUDGET_EXHAUSTED",
+        "EVIDENCE_STALE",
+        "CRITICAL_SOURCE_CONFLICT",
+        "THRESHOLD_NOT_MET",
+        "PROHIBITED_EVIDENCE_PRESENT",
+        "AUTHORITY_WINDOW_EXHAUSTED",
+        "INVALID_EVIDENCE_TYPE",
+        "INVALID_VALUE",
+        "INVALID_UNIT",
+        "INVALID_TIMESTAMP",
+        "FUTURE_TIMESTAMP",
+        "PROVENANCE_MISSING",
+        "CLAIM_MISMATCH",
+        "UNKNOWN_REQUIREMENT",
+        "CONTRACT_MISMATCH",
+        "SOURCE_NOT_PERMITTED",
+        "DUPLICATE_EVIDENCE",
+        "EVIDENCE_ID_COLLISION",
+        "INVALID_COST",
+        "SOURCE_UNAVAILABLE",
+        "PAYMENT_FAILED",
+        "RATE_LIMITED",
+        "INVALID_RESPONSE",
+        "MISSING_FIELD",
+        "BUDGET_EXCEEDED",
+        "SOURCE_NOT_CONFIGURED",
+        "EVIDENCE_AUTHORIZATION_REQUIRED",
+        "AUTHORIZATION_EXPIRED",
+        "ACTION_HASH_MISMATCH",
+        "AUTHORIZATION_ALREADY_CONSUMED",
+        "AUTHORIZATION_NOT_FOUND",
+        "UNAUTHORIZED_EXECUTOR",
+        "AUTHORITY_EXPANSION"
+      ],
+      "title": "ReasonCode",
+      "type": "string"
+    },
+    "ReceiptEvidenceLine": {
+      "additionalProperties": false,
+      "properties": {
+        "claim": {
+          "title": "Claim",
+          "type": "string"
+        },
+        "modes": {
+          "items": {
+            "$ref": "#/$defs/SourceMode"
+          },
+          "title": "Modes",
+          "type": "array"
+        },
+        "observed": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Observed",
+          "type": "array"
+        },
+        "providers": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Providers",
+          "type": "array"
+        },
+        "required": {
+          "title": "Required",
+          "type": "string"
+        },
+        "requirement_id": {
+          "title": "Requirement Id",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/RequirementStatus"
+        }
+      },
+      "required": [
+        "requirement_id",
+        "claim",
+        "required",
+        "observed",
+        "status",
+        "providers",
+        "modes"
+      ],
+      "title": "ReceiptEvidenceLine",
+      "type": "object"
+    },
+    "ReceiptPaymentLine": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "anyOf": [
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Amount"
+        },
+        "currency": {
+          "title": "Currency",
+          "type": "string"
+        },
+        "evidence_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Evidence Id"
+        },
+        "network": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Network"
+        },
+        "payment_reference": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Payment Reference"
+        },
+        "provider": {
+          "title": "Provider",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/PaymentStatus"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "provider",
+        "amount",
+        "currency",
+        "status",
+        "payment_reference",
+        "network"
+      ],
+      "title": "ReceiptPaymentLine",
+      "type": "object"
+    },
+    "RequirementStatus": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "UNKNOWN"
+      ],
+      "title": "RequirementStatus",
+      "type": "string"
+    },
+    "SourceMode": {
+      "description": "How an observation was produced. Never blurred in the UI (Document 05 \u00a758).",
+      "enum": [
+        "LIVE",
+        "RECORDED",
+        "SIMULATED",
+        "INJECTED"
+      ],
+      "title": "SourceMode",
+      "type": "string"
+    }
+  },
+  "$id": "https://sufficia.dev/schemas/evidence-receipt.v1.json",
+  "additionalProperties": false,
+  "properties": {
+    "action_hash": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Action Hash"
+    },
+    "authorization": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Authorization"
+    },
+    "chain_mode": {
+      "title": "Chain Mode",
+      "type": "string"
+    },
+    "conflicts": {
+      "title": "Conflicts",
+      "type": "integer"
+    },
+    "contract_hash": {
+      "title": "Contract Hash",
+      "type": "string"
+    },
+    "contract_id": {
+      "title": "Contract Id",
+      "type": "string"
+    },
+    "coverage": {
+      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+      "title": "Coverage",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "decision_id": {
+      "title": "Decision Id",
+      "type": "string"
+    },
+    "decision_reason": {
+      "title": "Decision Reason",
+      "type": "string"
+    },
+    "decision_state": {
+      "$ref": "#/$defs/DecisionState"
+    },
+    "engine_version": {
+      "title": "Engine Version",
+      "type": "string"
+    },
+    "evaluated_at": {
+      "format": "date-time",
+      "title": "Evaluated At",
+      "type": "string"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/ReceiptEvidenceLine"
+      },
+      "title": "Evidence",
+      "type": "array"
+    },
+    "evidence_cost_usdc": {
+      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+      "title": "Evidence Cost Usdc",
+      "type": "string"
+    },
+    "evidence_count": {
+      "title": "Evidence Count",
+      "type": "integer"
+    },
+    "evidence_root": {
+      "title": "Evidence Root",
+      "type": "string"
+    },
+    "execution": {
+      "additionalProperties": true,
+      "title": "Execution",
+      "type": "object"
+    },
+    "freshness_pass": {
+      "title": "Freshness Pass",
+      "type": "boolean"
+    },
+    "intent_hash": {
+      "title": "Intent Hash",
+      "type": "string"
+    },
+    "intent_id": {
+      "title": "Intent Id",
+      "type": "string"
+    },
+    "intent_text": {
+      "title": "Intent Text",
+      "type": "string"
+    },
+    "kind": {
+      "title": "Kind",
+      "type": "string"
+    },
+    "network": {
+      "title": "Network",
+      "type": "string"
+    },
+    "payments": {
+      "items": {
+        "$ref": "#/$defs/ReceiptPaymentLine"
+      },
+      "title": "Payments",
+      "type": "array"
+    },
+    "protected_amount": {
+      "$ref": "#/$defs/Money"
+    },
+    "reason_codes": {
+      "items": {
+        "$ref": "#/$defs/ReasonCode"
+      },
+      "title": "Reason Codes",
+      "type": "array"
+    },
+    "receipt_hash": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Receipt Hash"
+    },
+    "receipt_id": {
+      "title": "Receipt Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "receipt_id",
+    "kind",
+    "intent_id",
+    "intent_text",
+    "intent_hash",
+    "contract_id",
+    "contract_hash",
+    "evidence_root",
+    "action_hash",
+    "decision_id",
+    "decision_state",
+    "reason_codes",
+    "decision_reason",
+    "engine_version",
+    "evaluated_at",
+    "evidence_count",
+    "evidence_cost_usdc",
+    "coverage",
+    "freshness_pass",
+    "conflicts",
+    "evidence",
+    "payments",
+    "authorization",
+    "execution",
+    "protected_amount",
+    "network",
+    "chain_mode",
+    "created_at"
+  ],
+  "title": "EvidenceReceipt",
+  "type": "object"
+}

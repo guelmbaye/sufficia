@@ -1,0 +1,29 @@
+{
+  "evidence_id": "liquidity_1000000",
+  "contract_id": "ec_buy_token_v1",
+  "requirement_id": "req_liquidity",
+  "claim": {
+    "name": "available_liquidity",
+    "value": 1000000,
+    "unit": "USD"
+  },
+  "temporal": {
+    "observed_at": "2026-10-05T18:42:12Z",
+    "received_at": "2026-10-05T18:42:12.350Z"
+  },
+  "source": {
+    "provider": "dex-liquidity-api",
+    "source_type": "API",
+    "mode": "SIMULATED",
+    "endpoint_id": "liquidity/pool-depth/v1",
+    "source_family": "dex-indexer-a"
+  },
+  "integrity": {
+    "request_hash": "0xef9cb05c4321310a465f9dc9f2d4a702f88f7e88af298f1d7cd9be9d07ec1844",
+    "response_hash": "0xa307e608be2bad1d8dbade766792695cc57ca09f02d6718b500d3b50ad2f3800"
+  },
+  "economic": {
+    "cost": 0.02,
+    "currency": "USDC"
+  }
+}

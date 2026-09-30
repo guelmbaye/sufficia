@@ -1,0 +1,41 @@
+{
+  "case_id": "threshold_008",
+  "category": "threshold",
+  "description": "Operator boundary (>= contract): liquidity $499,999.99 fails '>= $500,000'.",
+  "tags": [
+    "boundary",
+    "operator"
+  ],
+  "contract_fixture": "buy_token_gte_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "gte_inflow_valid_01",
+    "gte_liquidity_499999_99",
+    "gte_price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "DENY",
+    "reason_codes": [
+      "THRESHOLD_NOT_MET"
+    ],
+    "failed_requirements": [
+      "req_liquidity"
+    ],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "FAIL",
+      "req_price": "PASS"
+    },
+    "reason_detail": {
+      "req_liquidity": {
+        "observed_values": [
+          "499999.99"
+        ]
+      }
+    },
+    "messages": {
+      "req_liquidity": "Available liquidity is $499,999.99. The Evidence Contract requires at least $500,000."
+    }
+  }
+}

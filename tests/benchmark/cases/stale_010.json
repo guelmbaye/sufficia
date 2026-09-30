@@ -1,0 +1,46 @@
+{
+  "case_id": "stale_010",
+  "category": "stale",
+  "description": "minimum_items = 2 for liquidity: one fresh observation plus one 45 s old. Two observations exist but one is stale, so the requirement is stale (REFRESH), not missing.",
+  "tags": [
+    "minimum-items",
+    "freshness"
+  ],
+  "contract_fixture": "buy_token_2src_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "src2_inflow_valid_01",
+    "src2_liquidity_a",
+    "src2_liquidity_b_age_45s",
+    "src2_price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "REFRESH",
+    "reason_codes": [
+      "EVIDENCE_STALE"
+    ],
+    "failed_requirements": [
+      "req_liquidity"
+    ],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "UNKNOWN",
+      "req_price": "PASS"
+    },
+    "reason_detail": {
+      "req_liquidity": {
+        "age_seconds": "45",
+        "evidence_id": "src2_liquidity_b_age_45s"
+      }
+    },
+    "evidence": {
+      "src2_liquidity_a": {
+        "status": "VALID"
+      },
+      "src2_liquidity_b_age_45s": {
+        "status": "STALE"
+      }
+    }
+  }
+}

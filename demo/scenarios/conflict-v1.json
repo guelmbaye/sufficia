@@ -1,0 +1,31 @@
+{
+  "scenario_id": "conflict-v1",
+  "title": "F4 - Critical conflict",
+  "description": "Two liquidity sources: $718,000 vs $89,750 -> ESCALATE (no source silently chosen).",
+  "intent": "Buy up to 100 USDC of TOKEN-X only if smart-money inflows exceed $1M and liquidity exceeds $500K.",
+  "asset": "TOKEN-X",
+  "market": {
+    "smart_money_inflow_24h": "1340000",
+    "available_liquidity": "718000",
+    "asset_price": "0.428"
+  },
+  "steps": [
+    {
+      "op": "acquire"
+    },
+    {
+      "op": "inject",
+      "condition": "conflict",
+      "requirement": "req_liquidity"
+    },
+    {
+      "op": "decide",
+      "expect": "ESCALATE"
+    },
+    {
+      "op": "replay",
+      "expect": "MATCH"
+    }
+  ],
+  "version": 1
+}

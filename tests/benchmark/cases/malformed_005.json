@@ -1,0 +1,51 @@
+{
+  "case_id": "malformed_005",
+  "category": "malformed",
+  "description": "Impossible values: liquidity NaN and liquidity -$718,000 (liquidity cannot be negative).",
+  "tags": [
+    "malformed",
+    "invalid-value"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_nan",
+    "liquidity_negative",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "ABSTAIN",
+    "reason_codes": [
+      "MISSING_REQUIRED_EVIDENCE"
+    ],
+    "failed_requirements": [
+      "req_liquidity"
+    ],
+    "causes": {
+      "req_liquidity": [
+        "INVALID_VALUE"
+      ]
+    },
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "UNKNOWN",
+      "req_price": "PASS"
+    },
+    "evidence": {
+      "liquidity_nan": {
+        "status": "INVALID",
+        "reason_codes": [
+          "INVALID_VALUE"
+        ]
+      },
+      "liquidity_negative": {
+        "status": "INVALID",
+        "reason_codes": [
+          "INVALID_VALUE"
+        ]
+      }
+    }
+  }
+}

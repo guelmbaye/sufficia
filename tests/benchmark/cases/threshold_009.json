@@ -1,0 +1,48 @@
+{
+  "case_id": "threshold_009",
+  "category": "threshold",
+  "description": "Freshness boundary on a failing value: liquidity $92,440 observed exactly 30.000 s before evaluation. Age == max_age is fresh, so the threshold IS evaluated as current truth -> DENY (a stale value would be REFRESH).",
+  "tags": [
+    "boundary",
+    "freshness",
+    "threshold"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_low_age_30s",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "DENY",
+    "reason_codes": [
+      "THRESHOLD_NOT_MET"
+    ],
+    "failed_requirements": [
+      "req_liquidity"
+    ],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "FAIL",
+      "req_price": "PASS"
+    },
+    "reason_detail": {
+      "req_liquidity": {
+        "observed_values": [
+          "92440"
+        ]
+      }
+    },
+    "evidence": {
+      "liquidity_low_age_30s": {
+        "status": "VALID",
+        "reason_codes": []
+      }
+    },
+    "metrics": {
+      "freshness_pass": true
+    }
+  }
+}

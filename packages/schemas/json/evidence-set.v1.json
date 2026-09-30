@@ -1,0 +1,643 @@
+{
+  "$defs": {
+    "AcquisitionFailure": {
+      "additionalProperties": false,
+      "properties": {
+        "acquisition_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Acquisition Id"
+        },
+        "code": {
+          "$ref": "#/$defs/ReasonCode"
+        },
+        "cost_spent": {
+          "default": "0",
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "title": "Cost Spent",
+          "type": "string"
+        },
+        "detail": {
+          "default": "",
+          "title": "Detail",
+          "type": "string"
+        },
+        "provider": {
+          "title": "Provider",
+          "type": "string"
+        },
+        "requirement_id": {
+          "title": "Requirement Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "requirement_id",
+        "provider",
+        "code"
+      ],
+      "title": "AcquisitionFailure",
+      "type": "object"
+    },
+    "ChainReference": {
+      "additionalProperties": false,
+      "properties": {
+        "block_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Block Hash"
+        },
+        "block_number": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Block Number"
+        },
+        "chain_id": {
+          "title": "Chain Id",
+          "type": "integer"
+        },
+        "contract": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Contract"
+        },
+        "tx_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tx Hash"
+        }
+      },
+      "required": [
+        "chain_id"
+      ],
+      "title": "ChainReference",
+      "type": "object"
+    },
+    "EvidenceClaim": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "value": {
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "EvidenceClaim",
+      "type": "object"
+    },
+    "EvidenceDerivation": {
+      "additionalProperties": false,
+      "properties": {
+        "inputs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Inputs",
+          "type": "array"
+        },
+        "method": {
+          "title": "Method",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "method",
+        "version",
+        "inputs"
+      ],
+      "title": "EvidenceDerivation",
+      "type": "object"
+    },
+    "EvidenceEconomic": {
+      "additionalProperties": false,
+      "properties": {
+        "cost": {
+          "default": "0",
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "title": "Cost",
+          "type": "string"
+        },
+        "currency": {
+          "default": "USDC",
+          "title": "Currency",
+          "type": "string"
+        },
+        "payment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidencePayment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "EvidenceEconomic",
+      "type": "object"
+    },
+    "EvidenceIntegrity": {
+      "additionalProperties": false,
+      "properties": {
+        "chain_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ChainReference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "request_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Request Hash"
+        },
+        "response_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Response Hash"
+        }
+      },
+      "title": "EvidenceIntegrity",
+      "type": "object"
+    },
+    "EvidenceItem": {
+      "additionalProperties": false,
+      "properties": {
+        "acquisition_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Acquisition Id"
+        },
+        "claim": {
+          "$ref": "#/$defs/EvidenceClaim"
+        },
+        "contract_id": {
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "derivation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceDerivation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "economic": {
+          "$ref": "#/$defs/EvidenceEconomic"
+        },
+        "evidence_id": {
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "integrity": {
+          "$ref": "#/$defs/EvidenceIntegrity"
+        },
+        "requirement_id": {
+          "title": "Requirement Id",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/EvidenceSource"
+        },
+        "temporal": {
+          "$ref": "#/$defs/EvidenceTemporal"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "contract_id",
+        "requirement_id",
+        "claim",
+        "temporal",
+        "source"
+      ],
+      "title": "EvidenceItem",
+      "type": "object"
+    },
+    "EvidencePayment": {
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "default": "USDC",
+          "title": "Currency",
+          "type": "string"
+        },
+        "network": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Network"
+        },
+        "pay_to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pay To"
+        },
+        "payer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Payer"
+        },
+        "payment_reference": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Payment Reference"
+        },
+        "protocol": {
+          "default": "x402",
+          "title": "Protocol",
+          "type": "string"
+        },
+        "quoted_amount": {
+          "anyOf": [
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quoted Amount"
+        },
+        "scheme": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scheme"
+        },
+        "settled_amount": {
+          "anyOf": [
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Settled Amount"
+        },
+        "status": {
+          "$ref": "#/$defs/PaymentStatus",
+          "default": "REQUESTED"
+        }
+      },
+      "title": "EvidencePayment",
+      "type": "object"
+    },
+    "EvidenceSource": {
+      "additionalProperties": false,
+      "properties": {
+        "captured_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Captured At"
+        },
+        "endpoint_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Endpoint Id"
+        },
+        "mode": {
+          "$ref": "#/$defs/SourceMode"
+        },
+        "network": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Network"
+        },
+        "provider": {
+          "title": "Provider",
+          "type": "string"
+        },
+        "source_family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Family"
+        },
+        "source_type": {
+          "$ref": "#/$defs/SourceType"
+        },
+        "upstream_source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Upstream Source"
+        }
+      },
+      "required": [
+        "provider",
+        "source_type",
+        "mode"
+      ],
+      "title": "EvidenceSource",
+      "type": "object"
+    },
+    "EvidenceTemporal": {
+      "additionalProperties": false,
+      "description": "Timestamps are datetimes only when they are *unambiguous*: a datetime object, or an ISO-8601 string\nwith an explicit offset. Anything else (\"1700000000\", \"yesterday\", 1700000000) is kept raw so the\nengine flags INVALID_TIMESTAMP \u2014 and a replay re-parses it to exactly the same thing (no lenient\ncoercion that could turn an invalid observation into a valid one after a database round trip).",
+      "properties": {
+        "observed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed At"
+        },
+        "received_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Received At"
+        }
+      },
+      "title": "EvidenceTemporal",
+      "type": "object"
+    },
+    "PaymentStatus": {
+      "enum": [
+        "REQUESTED",
+        "QUOTED",
+        "AUTHORIZED",
+        "VERIFIED",
+        "SETTLED",
+        "SIMULATED",
+        "REJECTED",
+        "BUDGET_EXCEEDED",
+        "INSUFFICIENT_FUNDS",
+        "ALLOWANCE_REQUIRED",
+        "SETTLEMENT_FAILED",
+        "TIMEOUT"
+      ],
+      "title": "PaymentStatus",
+      "type": "string"
+    },
+    "ReasonCode": {
+      "enum": [
+        "ALL_REQUIREMENTS_SATISFIED",
+        "MISSING_REQUIRED_EVIDENCE",
+        "INSUFFICIENT_EVIDENCE_COUNT",
+        "EVIDENCE_BUDGET_EXHAUSTED",
+        "EVIDENCE_STALE",
+        "CRITICAL_SOURCE_CONFLICT",
+        "THRESHOLD_NOT_MET",
+        "PROHIBITED_EVIDENCE_PRESENT",
+        "AUTHORITY_WINDOW_EXHAUSTED",
+        "INVALID_EVIDENCE_TYPE",
+        "INVALID_VALUE",
+        "INVALID_UNIT",
+        "INVALID_TIMESTAMP",
+        "FUTURE_TIMESTAMP",
+        "PROVENANCE_MISSING",
+        "CLAIM_MISMATCH",
+        "UNKNOWN_REQUIREMENT",
+        "CONTRACT_MISMATCH",
+        "SOURCE_NOT_PERMITTED",
+        "DUPLICATE_EVIDENCE",
+        "EVIDENCE_ID_COLLISION",
+        "INVALID_COST",
+        "SOURCE_UNAVAILABLE",
+        "PAYMENT_FAILED",
+        "RATE_LIMITED",
+        "INVALID_RESPONSE",
+        "MISSING_FIELD",
+        "BUDGET_EXCEEDED",
+        "SOURCE_NOT_CONFIGURED",
+        "EVIDENCE_AUTHORIZATION_REQUIRED",
+        "AUTHORIZATION_EXPIRED",
+        "ACTION_HASH_MISMATCH",
+        "AUTHORIZATION_ALREADY_CONSUMED",
+        "AUTHORIZATION_NOT_FOUND",
+        "UNAUTHORIZED_EXECUTOR",
+        "AUTHORITY_EXPANSION"
+      ],
+      "title": "ReasonCode",
+      "type": "string"
+    },
+    "SourceMode": {
+      "description": "How an observation was produced. Never blurred in the UI (Document 05 \u00a758).",
+      "enum": [
+        "LIVE",
+        "RECORDED",
+        "SIMULATED",
+        "INJECTED"
+      ],
+      "title": "SourceMode",
+      "type": "string"
+    },
+    "SourceType": {
+      "enum": [
+        "API",
+        "ONCHAIN",
+        "ORACLE",
+        "DERIVED"
+      ],
+      "title": "SourceType",
+      "type": "string"
+    }
+  },
+  "$id": "https://sufficia.dev/schemas/evidence-set.v1.json",
+  "additionalProperties": false,
+  "properties": {
+    "acquisition_failures": {
+      "items": {
+        "$ref": "#/$defs/AcquisitionFailure"
+      },
+      "title": "Acquisition Failures",
+      "type": "array"
+    },
+    "contract_id": {
+      "title": "Contract Id",
+      "type": "string"
+    },
+    "items": {
+      "items": {
+        "$ref": "#/$defs/EvidenceItem"
+      },
+      "title": "Items",
+      "type": "array"
+    }
+  },
+  "required": [
+    "contract_id"
+  ],
+  "title": "EvidenceSet",
+  "type": "object"
+}

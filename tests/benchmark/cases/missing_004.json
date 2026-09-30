@@ -1,0 +1,47 @@
+{
+  "case_id": "missing_004",
+  "category": "missing",
+  "description": "Liquidity provider unavailable (HTTP 503): liquidity unsupported.",
+  "tags": [
+    "missing",
+    "acquisition-failure",
+    "canonical"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [
+    {
+      "requirement_id": "req_liquidity",
+      "provider": "dex-liquidity-api",
+      "code": "SOURCE_UNAVAILABLE",
+      "detail": "HTTP 503 Service Unavailable",
+      "cost_spent": 0
+    }
+  ],
+  "expected": {
+    "decision": "ABSTAIN",
+    "reason_codes": [
+      "MISSING_REQUIRED_EVIDENCE"
+    ],
+    "failed_requirements": [
+      "req_liquidity"
+    ],
+    "causes": {
+      "req_liquidity": [
+        "SOURCE_UNAVAILABLE"
+      ]
+    },
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "UNKNOWN",
+      "req_price": "PASS"
+    },
+    "messages": {
+      "req_liquidity": "Required available liquidity evidence could not be established: the source was unavailable."
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "evidence_id": "liquidity_unit_btc",
+  "contract_id": "ec_buy_token_v1",
+  "requirement_id": "req_liquidity",
+  "claim": {
+    "name": "available_liquidity",
+    "value": 718000,
+    "unit": "BTC"
+  },
+  "temporal": {
+    "observed_at": "2026-10-05T18:42:12Z",
+    "received_at": "2026-10-05T18:42:12.350Z"
+  },
+  "source": {
+    "provider": "dex-liquidity-api",
+    "source_type": "API",
+    "mode": "SIMULATED",
+    "endpoint_id": "liquidity/pool-depth/v1",
+    "source_family": "dex-indexer-a"
+  },
+  "integrity": {
+    "request_hash": "0xe85cebf820a82ea33bae4e43ae75337f793c4bddf25074933cca84b070bbb8cd",
+    "response_hash": "0x50eb12f2eb4d7ca0be673cef17f18080d6fe433abe7d5b16aed72caf3c3ac8c1"
+  },
+  "economic": {
+    "cost": 0.02,
+    "currency": "USDC"
+  }
+}

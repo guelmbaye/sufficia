@@ -1,0 +1,29 @@
+{
+  "evidence_id": "gte_inflow_valid_01",
+  "contract_id": "ec_buy_token_gte_v1",
+  "requirement_id": "req_inflow",
+  "claim": {
+    "name": "smart_money_inflow_24h",
+    "value": 1340000,
+    "unit": "USD"
+  },
+  "temporal": {
+    "observed_at": "2026-10-05T18:42:10Z",
+    "received_at": "2026-10-05T18:42:10.350Z"
+  },
+  "source": {
+    "provider": "smartmoney-api",
+    "source_type": "API",
+    "mode": "SIMULATED",
+    "endpoint_id": "smart-money/inflow-24h/v1",
+    "source_family": "smartmoney-indexer-a"
+  },
+  "integrity": {
+    "request_hash": "0x7a84c2fb2dfabf4370d70a1e28f4ec77f996eb0011babc6dd1b1f2e44fd189cb",
+    "response_hash": "0x21813114b0abac424b82c1083f5e1d6f54b38ecb1672633be43a5fd8d65b3da2"
+  },
+  "economic": {
+    "cost": 0.05,
+    "currency": "USDC"
+  }
+}

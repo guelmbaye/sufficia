@@ -1,0 +1,36 @@
+{
+  "case_id": "stale_003",
+  "category": "stale",
+  "description": "Inflow observation is 31 s old (max 30 s).",
+  "tags": [
+    "freshness"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_age_31s",
+    "liquidity_valid_01",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "REFRESH",
+    "reason_codes": [
+      "EVIDENCE_STALE"
+    ],
+    "failed_requirements": [
+      "req_inflow"
+    ],
+    "requirement_status": {
+      "req_inflow": "UNKNOWN",
+      "req_liquidity": "PASS",
+      "req_price": "PASS"
+    },
+    "reason_detail": {
+      "req_inflow": {
+        "age_seconds": "31",
+        "evidence_id": "inflow_age_31s"
+      }
+    }
+  }
+}

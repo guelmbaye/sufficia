@@ -1,0 +1,37 @@
+{
+  "case_id": "threshold_004",
+  "category": "threshold",
+  "description": "Smart-money inflow of $640,000 fails '> $1,000,000'.",
+  "tags": [
+    "threshold"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_low_640000",
+    "liquidity_valid_01",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "DENY",
+    "reason_codes": [
+      "THRESHOLD_NOT_MET"
+    ],
+    "failed_requirements": [
+      "req_inflow"
+    ],
+    "requirement_status": {
+      "req_inflow": "FAIL",
+      "req_liquidity": "PASS",
+      "req_price": "PASS"
+    },
+    "reason_detail": {
+      "req_inflow": {
+        "observed_values": [
+          "640000"
+        ]
+      }
+    }
+  }
+}

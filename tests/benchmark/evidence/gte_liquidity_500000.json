@@ -1,0 +1,29 @@
+{
+  "evidence_id": "gte_liquidity_500000",
+  "contract_id": "ec_buy_token_gte_v1",
+  "requirement_id": "req_liquidity",
+  "claim": {
+    "name": "available_liquidity",
+    "value": 500000,
+    "unit": "USD"
+  },
+  "temporal": {
+    "observed_at": "2026-10-05T18:42:12Z",
+    "received_at": "2026-10-05T18:42:12.350Z"
+  },
+  "source": {
+    "provider": "dex-liquidity-api",
+    "source_type": "API",
+    "mode": "SIMULATED",
+    "endpoint_id": "liquidity/pool-depth/v1",
+    "source_family": "dex-indexer-a"
+  },
+  "integrity": {
+    "request_hash": "0x06c87964d6bb71161d48658f04c421ec6a00d008169adb891d9b4a2ebbb6c5f3",
+    "response_hash": "0x9445a3286d9d6e787c42fa0ecec490bc7eea11f568980433bbf9151f2f980b7d"
+  },
+  "economic": {
+    "cost": 0.02,
+    "currency": "USDC"
+  }
+}

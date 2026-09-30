@@ -1,0 +1,54 @@
+{
+  "scenario_id": "grand-prize-v1",
+  "title": "Grand Prize: blocked, then evidence-bound execution",
+  "description": "Liquidity $92,440 fails the $500K requirement -> DENY (403 on execute, BLOCKED receipt). Liquidity recovers to $718,000, fresh evidence is re-acquired (x402-paid) -> AUTHORIZE -> protected execution on the EvidenceGate -> receipt committed onchain -> replay MATCH.",
+  "intent": "Buy up to 100 USDC of TOKEN-X only if smart-money inflows exceed $1M and liquidity exceeds $500K.",
+  "asset": "TOKEN-X",
+  "market": {
+    "smart_money_inflow_24h": "1340000",
+    "available_liquidity": "92440",
+    "asset_price": "0.428"
+  },
+  "steps": [
+    {
+      "op": "acquire",
+      "label": "Acquire evidence (x402-paid liquidity)"
+    },
+    {
+      "op": "decide",
+      "expect": "DENY",
+      "label": "Liquidity fails -> DENY"
+    },
+    {
+      "op": "attempt_execute",
+      "expect_error": "EVIDENCE_AUTHORIZATION_REQUIRED",
+      "label": "Direct execution attempt is refused (403)"
+    },
+    {
+      "op": "market",
+      "set": {
+        "available_liquidity": "718000"
+      },
+      "label": "Liquidity recovers to $718,000"
+    },
+    {
+      "op": "acquire",
+      "label": "Re-acquire fresh evidence"
+    },
+    {
+      "op": "decide",
+      "expect": "AUTHORIZE",
+      "label": "Every requirement passes -> AUTHORIZE"
+    },
+    {
+      "op": "execute",
+      "label": "Authorize + protected execution on the EvidenceGate"
+    },
+    {
+      "op": "replay",
+      "expect": "MATCH",
+      "label": "Replay the receipt from its snapshot"
+    }
+  ],
+  "version": 1
+}

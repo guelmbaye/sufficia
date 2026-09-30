@@ -1,0 +1,40 @@
+{
+  "case_id": "missing_006",
+  "category": "missing",
+  "description": "Budget exhaustion via evidence costs: 0.15 + 0.08 + 0.03 = 0.26 USDC exceeds the 0.25 USDC evidence budget, even though every observation would pass.",
+  "tags": [
+    "budget"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_paid_0_15",
+    "liquidity_paid_0_08",
+    "price_paid_0_03"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "ABSTAIN",
+    "reason_codes": [
+      "EVIDENCE_BUDGET_EXHAUSTED"
+    ],
+    "failed_requirements": [],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "PASS",
+      "req_price": "PASS"
+    },
+    "reason_detail": {
+      "_decision": {
+        "budget": "0.25",
+        "spent": "0.26"
+      }
+    },
+    "metrics": {
+      "evidence_cost_usd": 0.26
+    },
+    "messages": {
+      "_decision": "Acquiring the required evidence would exceed the evidence budget of 0.25 USDC (spent 0.26 USDC)."
+    }
+  }
+}

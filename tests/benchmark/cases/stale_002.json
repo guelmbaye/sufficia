@@ -1,0 +1,37 @@
+{
+  "case_id": "stale_002",
+  "category": "stale",
+  "description": "Freshness boundary: liquidity observation is 30.001 s old (max 30 s).",
+  "tags": [
+    "boundary",
+    "freshness"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_age_30_001s",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "REFRESH",
+    "reason_codes": [
+      "EVIDENCE_STALE"
+    ],
+    "failed_requirements": [
+      "req_liquidity"
+    ],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "UNKNOWN",
+      "req_price": "PASS"
+    },
+    "reason_detail": {
+      "req_liquidity": {
+        "age_seconds": "30.001",
+        "max_age_seconds": 30
+      }
+    }
+  }
+}

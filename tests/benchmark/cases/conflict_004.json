@@ -1,0 +1,41 @@
+{
+  "case_id": "conflict_004",
+  "category": "conflict",
+  "description": "Price sources disagree ($0.428 API vs $0.52 oracle, 17.7% apart). EXISTS is satisfied by both, but materially disagreeing observations are still escalated.",
+  "tags": [
+    "conflict",
+    "exists-operator"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_valid_01",
+    "price_valid_01",
+    "price_oracle_0_52"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "ESCALATE",
+    "reason_codes": [
+      "CRITICAL_SOURCE_CONFLICT"
+    ],
+    "failed_requirements": [
+      "req_price"
+    ],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "PASS",
+      "req_price": "UNKNOWN"
+    },
+    "reason_detail": {
+      "req_price": {
+        "evidence_a": "price_oracle_0_52",
+        "evidence_b": "price_valid_01",
+        "value_a": "0.52",
+        "value_b": "0.428",
+        "relative_difference": "0.17692308"
+      }
+    }
+  }
+}

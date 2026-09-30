@@ -1,0 +1,69 @@
+{
+  "case_id": "missing_005",
+  "category": "missing",
+  "description": "Every acquisition failed (payment failed, source unavailable, invalid response): nothing is known.",
+  "tags": [
+    "missing",
+    "acquisition-failure"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [],
+  "acquisition_failures": [
+    {
+      "requirement_id": "req_inflow",
+      "provider": "smartmoney-api",
+      "code": "PAYMENT_FAILED",
+      "detail": "x402 settlement rejected",
+      "cost_spent": 0
+    },
+    {
+      "requirement_id": "req_liquidity",
+      "provider": "dex-liquidity-api",
+      "code": "SOURCE_UNAVAILABLE",
+      "detail": "connection refused",
+      "cost_spent": 0
+    },
+    {
+      "requirement_id": "req_price",
+      "provider": "price-api",
+      "code": "INVALID_RESPONSE",
+      "detail": "response body is not JSON",
+      "cost_spent": 0
+    }
+  ],
+  "expected": {
+    "decision": "ABSTAIN",
+    "reason_codes": [
+      "MISSING_REQUIRED_EVIDENCE"
+    ],
+    "failed_requirements": [
+      "req_inflow",
+      "req_liquidity",
+      "req_price"
+    ],
+    "causes": {
+      "req_inflow": [
+        "PAYMENT_FAILED"
+      ],
+      "req_liquidity": [
+        "SOURCE_UNAVAILABLE"
+      ],
+      "req_price": [
+        "INVALID_RESPONSE"
+      ]
+    },
+    "requirement_status": {
+      "req_inflow": "UNKNOWN",
+      "req_liquidity": "UNKNOWN",
+      "req_price": "UNKNOWN"
+    },
+    "metrics": {
+      "evidence_count": 0,
+      "coverage": 0,
+      "independence_known": false,
+      "independent_source_count": null,
+      "evidence_cost_usd": 0
+    }
+  }
+}

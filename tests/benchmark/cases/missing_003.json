@@ -1,0 +1,43 @@
+{
+  "case_id": "missing_003",
+  "category": "missing",
+  "description": "Inflow provider rate-limited the request: inflow unsupported.",
+  "tags": [
+    "missing",
+    "acquisition-failure"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "liquidity_valid_01",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [
+    {
+      "requirement_id": "req_inflow",
+      "provider": "smartmoney-api",
+      "code": "RATE_LIMITED",
+      "detail": "HTTP 429 Too Many Requests",
+      "cost_spent": 0
+    }
+  ],
+  "expected": {
+    "decision": "ABSTAIN",
+    "reason_codes": [
+      "MISSING_REQUIRED_EVIDENCE"
+    ],
+    "failed_requirements": [
+      "req_inflow"
+    ],
+    "causes": {
+      "req_inflow": [
+        "RATE_LIMITED"
+      ]
+    },
+    "requirement_status": {
+      "req_inflow": "UNKNOWN",
+      "req_liquidity": "PASS",
+      "req_price": "PASS"
+    }
+  }
+}

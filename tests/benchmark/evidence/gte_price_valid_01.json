@@ -1,0 +1,29 @@
+{
+  "evidence_id": "gte_price_valid_01",
+  "contract_id": "ec_buy_token_gte_v1",
+  "requirement_id": "req_price",
+  "claim": {
+    "name": "asset_price",
+    "value": 0.428,
+    "unit": "USD"
+  },
+  "temporal": {
+    "observed_at": "2026-10-05T18:42:13Z",
+    "received_at": "2026-10-05T18:42:13.350Z"
+  },
+  "source": {
+    "provider": "price-api",
+    "source_type": "API",
+    "mode": "SIMULATED",
+    "endpoint_id": "price/spot/v1",
+    "source_family": "price-feed-a"
+  },
+  "integrity": {
+    "request_hash": "0x33c207b9cba152c83e6cbbaf6193bd6a11915af90328fd028d78d74bca5ba6c0",
+    "response_hash": "0x7f8a56aa6dfdc3a1c5ecb62686c717082622158ba74fe4cf80edcd94a14958da"
+  },
+  "economic": {
+    "cost": 0.01,
+    "currency": "USDC"
+  }
+}

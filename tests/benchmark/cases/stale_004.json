@@ -1,0 +1,35 @@
+{
+  "case_id": "stale_004",
+  "category": "stale",
+  "description": "Price observation is 5 minutes old (Demo Lab 'timestamp - 5 minutes').",
+  "tags": [
+    "freshness"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_valid_01",
+    "price_age_300s"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "REFRESH",
+    "reason_codes": [
+      "EVIDENCE_STALE"
+    ],
+    "failed_requirements": [
+      "req_price"
+    ],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "PASS",
+      "req_price": "UNKNOWN"
+    },
+    "reason_detail": {
+      "req_price": {
+        "age_seconds": "300"
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "provider": "simulated-market",
+  "source_type": "API",
+  "claim": "smart_money_inflow_24h",
+  "value": 1340000,
+  "unit": "USD",
+  "captured_at": "2026-09-30T15:03:48.415334Z",
+  "request_descriptor": {
+    "method": "GET",
+    "url": "sim://market/TOKEN-X/smart_money_inflow_24h"
+  },
+  "response_body_b64": "eyJhc3NldCI6IlRPS0VOLVgiLCJjbGFpbSI6InNtYXJ0X21vbmV5X2luZmxvd18yNGgiLCJtb2RlIjoiU0lNVUxBVEVEIiwib2JzZXJ2ZWRfYXQiOiIyMDI2LTA5LTMwVDE1OjAzOjQ4LjQxNTIxNVoiLCJ1bml0IjoiVVNEIiwidmFsdWUiOjEzNDAwMDAsInZlcnNpb24iOjB9",
+  "upstream_source": "simulated-market",
+  "source_family": "simulated-market",
+  "endpoint_id": "sim://market",
+  "network": null,
+  "original_mode": "SIMULATED",
+  "note": "SAMPLE captured from the local SIMULATED market (sufficia.evidence.simulated_market). This is NOT a capture of a real provider response; it only exercises the RECORDED path."
+}

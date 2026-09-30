@@ -1,0 +1,40 @@
+{
+  "case_id": "conflict_002",
+  "category": "conflict",
+  "description": "Conflict boundary: liquidity sources $1,000,000 and $899,000 are 10.1% apart (> 10% tolerance).",
+  "tags": [
+    "boundary",
+    "conflict"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_1000000",
+    "liquidity_onchain_899000",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "ESCALATE",
+    "reason_codes": [
+      "CRITICAL_SOURCE_CONFLICT"
+    ],
+    "failed_requirements": [
+      "req_liquidity"
+    ],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "UNKNOWN",
+      "req_price": "PASS"
+    },
+    "reason_detail": {
+      "req_liquidity": {
+        "evidence_a": "liquidity_1000000",
+        "evidence_b": "liquidity_onchain_899000",
+        "relative_difference": "0.101",
+        "conflict_count": 1
+      }
+    }
+  }
+}

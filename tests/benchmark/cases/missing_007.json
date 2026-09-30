@@ -1,0 +1,49 @@
+{
+  "case_id": "missing_007",
+  "category": "missing",
+  "description": "Budget exhaustion at acquisition: the liquidity quote does not fit the remaining budget, so the payment is never signed (BUDGET_EXCEEDED) and liquidity stays unsupported.",
+  "tags": [
+    "budget",
+    "acquisition-failure"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [
+    {
+      "requirement_id": "req_liquidity",
+      "provider": "dex-liquidity-api",
+      "code": "BUDGET_EXCEEDED",
+      "detail": "x402 quote of 0.40 USDC exceeds the remaining evidence budget of 0.19 USDC; not signed",
+      "cost_spent": 0
+    }
+  ],
+  "expected": {
+    "decision": "ABSTAIN",
+    "reason_codes": [
+      "EVIDENCE_BUDGET_EXHAUSTED"
+    ],
+    "failed_requirements": [
+      "req_liquidity"
+    ],
+    "causes": {
+      "req_liquidity": [
+        "BUDGET_EXCEEDED"
+      ]
+    },
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "UNKNOWN",
+      "req_price": "PASS"
+    },
+    "reason_detail": {
+      "req_liquidity": {
+        "budget": "0.25",
+        "valid_items": 0
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "evidence_id": "price_at_eval",
+  "contract_id": "ec_buy_token_v1",
+  "requirement_id": "req_price",
+  "claim": {
+    "name": "asset_price",
+    "value": 0.428,
+    "unit": "USD"
+  },
+  "temporal": {
+    "observed_at": "2026-10-05T18:42:15Z",
+    "received_at": "2026-10-05T18:42:15.350Z"
+  },
+  "source": {
+    "provider": "price-api",
+    "source_type": "API",
+    "mode": "SIMULATED",
+    "endpoint_id": "price/spot/v1",
+    "source_family": "price-feed-a"
+  },
+  "integrity": {
+    "request_hash": "0x154d84c7464ddb5eb72be81ba4c3bf0a0ffc33d69b4aaa5bd384407445a5e63f",
+    "response_hash": "0x2c30070d62a090b658183dea3e215ea4ec4d16fffd109b28a1db938827fb6592"
+  },
+  "economic": {
+    "cost": 0.01,
+    "currency": "USDC"
+  }
+}

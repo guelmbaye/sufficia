@@ -1,0 +1,38 @@
+{
+  "case_id": "threshold_003",
+  "category": "threshold",
+  "description": "Threshold boundary: liquidity $499,999.99 fails '> $500,000'.",
+  "tags": [
+    "boundary",
+    "threshold"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_499999_99",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "DENY",
+    "reason_codes": [
+      "THRESHOLD_NOT_MET"
+    ],
+    "failed_requirements": [
+      "req_liquidity"
+    ],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "FAIL",
+      "req_price": "PASS"
+    },
+    "reason_detail": {
+      "req_liquidity": {
+        "observed_values": [
+          "499999.99"
+        ]
+      }
+    }
+  }
+}

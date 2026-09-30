@@ -1,0 +1,29 @@
+{
+  "scenario_id": "valid-v1",
+  "title": "F5 - Everything valid",
+  "description": "All mandatory checks pass -> AUTHORIZE -> protected execution -> receipt -> replay.",
+  "intent": "Buy up to 100 USDC of TOKEN-X only if smart-money inflows exceed $1M and liquidity exceeds $500K.",
+  "asset": "TOKEN-X",
+  "market": {
+    "smart_money_inflow_24h": "1340000",
+    "available_liquidity": "718000",
+    "asset_price": "0.428"
+  },
+  "steps": [
+    {
+      "op": "acquire"
+    },
+    {
+      "op": "decide",
+      "expect": "AUTHORIZE"
+    },
+    {
+      "op": "execute"
+    },
+    {
+      "op": "replay",
+      "expect": "MATCH"
+    }
+  ],
+  "version": 1
+}

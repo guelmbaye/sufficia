@@ -1,0 +1,35 @@
+{
+  "evidence_id": "src2_liquidity_b_age_45s",
+  "contract_id": "ec_buy_token_2src_v1",
+  "requirement_id": "req_liquidity",
+  "claim": {
+    "name": "available_liquidity",
+    "value": 700000,
+    "unit": "USD"
+  },
+  "temporal": {
+    "observed_at": "2026-10-05T18:41:30Z",
+    "received_at": "2026-10-05T18:41:30.350Z"
+  },
+  "source": {
+    "provider": "monad-pool-reader",
+    "source_type": "ONCHAIN",
+    "mode": "SIMULATED",
+    "endpoint_id": "pool/getReserves",
+    "source_family": "monad-pool-state",
+    "network": "monad-testnet"
+  },
+  "integrity": {
+    "request_hash": null,
+    "response_hash": "0x4e3b2301ef9a33f5f0ffe8535c9da9812ac0d3f195b1328f379b6ac5afe4ebd1",
+    "chain_ref": {
+      "chain_id": 10143,
+      "block_number": 48123370,
+      "contract": "0x4d0e5a1b9c3f7e2d8a6b5c4d3e2f1a0b9c8d7e6f"
+    }
+  },
+  "economic": {
+    "cost": 0,
+    "currency": "USDC"
+  }
+}

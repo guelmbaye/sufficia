@@ -1,0 +1,30 @@
+{
+  "scenario_id": "threshold-fail-v1",
+  "title": "F1 - Threshold failure",
+  "description": "Required liquidity > $500K, observed $92,440 -> DENY.",
+  "intent": "Buy up to 100 USDC of TOKEN-X only if smart-money inflows exceed $1M and liquidity exceeds $500K.",
+  "asset": "TOKEN-X",
+  "market": {
+    "smart_money_inflow_24h": "1340000",
+    "available_liquidity": "92440",
+    "asset_price": "0.428"
+  },
+  "steps": [
+    {
+      "op": "acquire"
+    },
+    {
+      "op": "decide",
+      "expect": "DENY"
+    },
+    {
+      "op": "attempt_execute",
+      "expect_error": "EVIDENCE_AUTHORIZATION_REQUIRED"
+    },
+    {
+      "op": "replay",
+      "expect": "MATCH"
+    }
+  ],
+  "version": 1
+}

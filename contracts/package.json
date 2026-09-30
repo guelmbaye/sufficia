@@ -1,0 +1,17 @@
+{
+  "name": "@sufficia/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SUFFICIA smart contracts: EvidenceGate (evidence-bound execution) and demo tokens/router",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check:foundry": "node scripts/build.mjs --with-tests"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "5.6.1",
+    "@shunkakinoki/ds-test": "1.0.2",
+    "forge-std": "1.1.2",
+    "solc": "0.8.28"
+  }
+}

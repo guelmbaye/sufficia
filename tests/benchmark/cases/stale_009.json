@@ -1,0 +1,37 @@
+{
+  "case_id": "stale_009",
+  "category": "stale",
+  "description": "Replay of favorable recorded evidence: a genuine liquidity response captured one hour earlier (RECORDED mode).",
+  "tags": [
+    "freshness",
+    "recorded-replay"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_recorded_1h",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "REFRESH",
+    "reason_codes": [
+      "EVIDENCE_STALE"
+    ],
+    "failed_requirements": [
+      "req_liquidity"
+    ],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "UNKNOWN",
+      "req_price": "PASS"
+    },
+    "reason_detail": {
+      "req_liquidity": {
+        "age_seconds": "3600",
+        "evidence_id": "liquidity_recorded_1h"
+      }
+    }
+  }
+}

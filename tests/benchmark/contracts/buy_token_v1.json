@@ -1,0 +1,69 @@
+{
+  "contract_id": "ec_buy_token_v1",
+  "intent_id": "intent_buy_token_x_100_usdc",
+  "schema_version": 1,
+  "policy_version": 1,
+  "action": {
+    "type": "BUY",
+    "asset": "TOKEN-X",
+    "max_amount": {
+      "value": 100,
+      "currency": "USDC"
+    }
+  },
+  "requirements": [
+    {
+      "id": "req_inflow",
+      "claim": "smart_money_inflow_24h",
+      "operator": ">",
+      "threshold": 1000000,
+      "unit": "USD",
+      "required": true,
+      "max_age_seconds": 30,
+      "minimum_items": 1,
+      "conflict_tolerance": 0.10,
+      "conflict_policy": "ESCALATE",
+      "origin": "USER"
+    },
+    {
+      "id": "req_liquidity",
+      "claim": "available_liquidity",
+      "operator": ">",
+      "threshold": 500000,
+      "unit": "USD",
+      "required": true,
+      "max_age_seconds": 30,
+      "minimum_items": 1,
+      "conflict_tolerance": 0.10,
+      "conflict_policy": "ESCALATE",
+      "origin": "USER"
+    },
+    {
+      "id": "req_price",
+      "claim": "asset_price",
+      "operator": "EXISTS",
+      "unit": "USD",
+      "required": true,
+      "max_age_seconds": 30,
+      "minimum_items": 1,
+      "conflict_tolerance": 0.10,
+      "conflict_policy": "ESCALATE",
+      "origin": "USER"
+    }
+  ],
+  "policy": {
+    "minimum_required_evidence": 3,
+    "missing_required": "ABSTAIN",
+    "stale_required": "REFRESH",
+    "critical_conflict": "ESCALATE",
+    "failed_threshold": "DENY",
+    "clock_skew_seconds": 2
+  },
+  "economic_limits": {
+    "max_execution_value_usd": 100,
+    "max_evidence_cost_usd": 0.25
+  },
+  "authorization": {
+    "ttl_seconds": 30
+  }
+}

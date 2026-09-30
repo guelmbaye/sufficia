@@ -1,0 +1,31 @@
+{
+  "evidence_id": "liquidity_nan",
+  "contract_id": "ec_buy_token_v1",
+  "requirement_id": "req_liquidity",
+  "claim": {
+    "name": "available_liquidity",
+    "value": {
+      "$nonfinite": "NaN"
+    },
+    "unit": "USD"
+  },
+  "temporal": {
+    "observed_at": "2026-10-05T18:42:12Z",
+    "received_at": "2026-10-05T18:42:12.350Z"
+  },
+  "source": {
+    "provider": "dex-liquidity-api",
+    "source_type": "API",
+    "mode": "SIMULATED",
+    "endpoint_id": "liquidity/pool-depth/v1",
+    "source_family": "dex-indexer-a"
+  },
+  "integrity": {
+    "request_hash": "0xd6ba7cd9b82a2a1b76460d7f5d0c05a2f036c8f512e2b1d76643791b66be7bfb",
+    "response_hash": "0x0b0771b17f1371db110d5838d8278d7b6018fd707deea19c4e64216adeca43b5"
+  },
+  "economic": {
+    "cost": 0.02,
+    "currency": "USDC"
+  }
+}

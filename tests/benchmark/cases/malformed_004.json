@@ -1,0 +1,54 @@
+{
+  "case_id": "malformed_004",
+  "category": "malformed",
+  "description": "Missing provenance: the price response carries no request/response hashes; the liquidity response hash is tampered and truncated ('0xdeadbeef').",
+  "tags": [
+    "malformed",
+    "provenance"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_hash_tampered",
+    "price_no_hashes"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "ABSTAIN",
+    "reason_codes": [
+      "MISSING_REQUIRED_EVIDENCE"
+    ],
+    "failed_requirements": [
+      "req_liquidity",
+      "req_price"
+    ],
+    "causes": {
+      "req_liquidity": [
+        "PROVENANCE_MISSING"
+      ],
+      "req_price": [
+        "PROVENANCE_MISSING"
+      ]
+    },
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "UNKNOWN",
+      "req_price": "UNKNOWN"
+    },
+    "evidence": {
+      "liquidity_hash_tampered": {
+        "status": "INVALID",
+        "reason_codes": [
+          "PROVENANCE_MISSING"
+        ]
+      },
+      "price_no_hashes": {
+        "status": "INVALID",
+        "reason_codes": [
+          "PROVENANCE_MISSING"
+        ]
+      }
+    }
+  }
+}

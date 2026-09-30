@@ -1,0 +1,25 @@
+{
+  "description": "Swap up to 100 demo USDC for TOKEN-X through the DemoSwapRouter, guarded by EvidenceGate.",
+  "action": {
+    "action_type": "BUY",
+    "asset": "TOKEN-X",
+    "amount": {
+      "value": 100,
+      "currency": "USDC"
+    },
+    "chain_id": 10143,
+    "gate_address": "0x1111111111111111111111111111111111111111",
+    "target": "0x2222222222222222222222222222222222222222",
+    "value": 0,
+    "data": "0x",
+    "asset_in": "0x3333333333333333333333333333333333333333",
+    "max_amount_in": 100000000,
+    "asset_out": "0x4444444444444444444444444444444444444444",
+    "min_amount_out": 233600000000000000000,
+    "recipient": "0x5555555555555555555555555555555555555555",
+    "adapter": "demo-swap-router-v1",
+    "description": "Buy TOKEN-X with up to 100 USDC"
+  },
+  "executor": "0x6666666666666666666666666666666666666666",
+  "onchain_intent_id": "0x7777777777777777777777777777777777777777777777777777777777777777"
+}

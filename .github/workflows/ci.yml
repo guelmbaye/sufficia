@@ -1,0 +1,55 @@
+# CI gates (Document 06 §113): engine tests, benchmark 50/50, schema + canonicalization tests,
+# smart-contract tests, integration. Live-network tests stay separate (tests/live, manual).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: contracts/package-lock.json
+      - run: npm ci
+        working-directory: contracts
+      - name: Build (solc 0.8.28) and verify committed artifacts
+        run: |
+          npm run build
+          git diff --exit-code -- ../apps/api/sufficia/blockchain/artifacts
+        working-directory: contracts
+      - run: npm run check:foundry
+        working-directory: contracts
+      - uses: foundry-rs/foundry-toolchain@v1
+      - name: Foundry tests
+        run: forge test -vv
+        working-directory: contracts
+
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: apps/api/pyproject.toml
+      - run: pip install -e "apps/api[dev]" -e packages/sdk/python
+      - name: Benchmark fixtures are generated, not hand-edited
+        run: python tests/benchmark/generate_fixtures.py --check
+      - name: JSON Schemas / OpenAPI up to date
+        run: python apps/api/scripts/export_schemas.py --check
+      - name: Unit, property, adversarial, EVM and API tests
+        run: python -m pytest -q -p no:cacheprovider
+        working-directory: apps/api
+      - name: Benchmark 50/50 (hermetic)
+        run: python -m sufficia.benchmark --no-reports
+        working-directory: apps/api
+      - name: HTTP integration (real uvicorn process)
+        run: python -m pytest -q -p no:cacheprovider tests/integration

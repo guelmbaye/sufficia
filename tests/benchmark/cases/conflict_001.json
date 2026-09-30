@@ -1,0 +1,65 @@
+{
+  "case_id": "conflict_001",
+  "category": "conflict",
+  "description": "Canonical conflict: DEX API reports $718,000 liquidity, the onchain pool $91,000. No source is silently chosen.",
+  "tags": [
+    "canonical",
+    "conflict"
+  ],
+  "contract_fixture": "buy_token_v1",
+  "evaluation_time": "2026-10-05T18:42:15Z",
+  "evidence": [
+    "inflow_valid_01",
+    "liquidity_valid_01",
+    "liquidity_onchain_91000",
+    "price_valid_01"
+  ],
+  "acquisition_failures": [],
+  "expected": {
+    "decision": "ESCALATE",
+    "reason_codes": [
+      "CRITICAL_SOURCE_CONFLICT"
+    ],
+    "failed_requirements": [
+      "req_liquidity"
+    ],
+    "requirement_status": {
+      "req_inflow": "PASS",
+      "req_liquidity": "UNKNOWN",
+      "req_price": "PASS"
+    },
+    "reason_detail": {
+      "req_liquidity": {
+        "evidence_a": "liquidity_onchain_91000",
+        "evidence_b": "liquidity_valid_01",
+        "provider_a": "monad-pool-reader",
+        "provider_b": "dex-liquidity-api",
+        "value_a": "91000",
+        "value_b": "718000",
+        "relative_difference": "0.87325906",
+        "tolerance": "0.1",
+        "conflict_count": 1
+      }
+    },
+    "evidence": {
+      "liquidity_valid_01": {
+        "status": "CONFLICTED",
+        "reason_codes": [
+          "CRITICAL_SOURCE_CONFLICT"
+        ]
+      },
+      "liquidity_onchain_91000": {
+        "status": "CONFLICTED",
+        "reason_codes": [
+          "CRITICAL_SOURCE_CONFLICT"
+        ]
+      }
+    },
+    "metrics": {
+      "conflicts": 1
+    },
+    "messages": {
+      "req_liquidity": "Two valid sources disagree on available liquidity: $91,000 (monad-pool-reader) vs $718,000 (dex-liquidity-api), 87.326% apart; the allowed tolerance is 10%."
+    }
+  }
+}
