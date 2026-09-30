@@ -4,11 +4,16 @@
 
 ```bash
 make install && make api          # CHAIN_MODE=LOCAL_EVM: the real EvidenceGate bytecode on an in-process EVM
-make demo                         # grand-prize-v1 end to end
+make web                          # web app on http://127.0.0.1:3000 (open /demo)
+make demo                         # grand-prize-v1 end to end over HTTP, no browser
 ```
 
-Docker: `docker compose up --build` (SQLite volume) or `docker compose --profile postgres up` with
+Docker: `docker compose up --build` starts the API (`:8000`, SQLite volume) and the web app (`:3000`, Next.js
+standalone image, `SUFFICIA_API_URL=http://api:8000`), or `docker compose --profile postgres up` with
 `DATABASE_URL=postgresql://sufficia:sufficia@postgres:5432/sufficia` and `make migrate`.
+
+The web image is built once and pointed at any API at runtime: `SUFFICIA_API_URL` (and `SUFFICIA_API_KEY` when the API
+runs with `API_KEY`) are read by the `/api/v1` proxy on each request.
 
 ## 2. Monad testnet
 
@@ -60,5 +65,10 @@ To capture genuine provider responses for the `recorded` profile: `python apps/a
 - One API process (`--workers 1`): signer queues and the local chain are in-process; scale reads behind a cache, not
   by adding writers.
 - Set `API_KEY`, `DEMO_MODE=false`, `CORS_ORIGINS`, PostgreSQL, and keep the four keys in a secret manager.
+  Give the web app the same key as `SUFFICIA_API_KEY`; it stays server-side.
+- `DEMO_MODE=false` removes the Demo Lab routes; the web app then hides *Test the gate* and the Grand Prize shortcut
+  (`/demo` explains that the scenario is unavailable). The rest of the flow is unchanged.
+- The API rate limit is per client address. Behind the web proxy every viewer shares the web server's address, so
+  size `RATE_LIMIT_PER_MINUTE` for the whole audience (the E2E suite sets it to 0).
 - `EvidenceGate` is immutable (no proxy); rotate the authorizer with `grantRole`/`revokeRole`; `pause()` stops new
   authorizations and executions while receipts can still be committed.

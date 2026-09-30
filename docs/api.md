@@ -1,7 +1,8 @@
 # API reference
 
 Base URL `http://127.0.0.1:8000`. Interactive docs at `/docs`; machine-readable spec in
-[`packages/schemas/openapi.json`](../packages/schemas/openapi.json).
+[`packages/schemas/openapi.json`](../packages/schemas/openapi.json). The web app reaches the same routes through its
+same-origin proxy (`http://127.0.0.1:3000/api/v1/*`).
 
 **Conventions**
 - Authority-carrying numbers are exact: Decimals are JSON strings (`"0.428"`, `"500000"`); integers above 2^53
@@ -59,8 +60,9 @@ curl -s -XPOST $B/receipts/$RID/replay | jq '{result, chain_verification}'   # M
 ### Receipts, replay, audit
 | Method | Path | Notes |
 |---|---|---|
-| GET | `/api/v1/receipts` · `/api/v1/receipts/{id}` · `/api/v1/decisions/{id}/receipt` | receipt body, `receipt_hash`, onchain `commitment`, `audit_chain` |
-| POST | `/api/v1/receipts/{id}/replay` | `MATCH`/`MISMATCH` with every check (receipt integrity, decision replay, authority binding, onchain state) |
+| GET | `/api/v1/receipts` · `/api/v1/receipts/{id}` · `/api/v1/decisions/{id}/receipt` | receipt body, `receipt_hash`, onchain `commitment`, `audit_chain`, and `timeline` (intent → contract → evidence → decision → blocked \| authorized → committed → executed \| expired → receipt, from stored timestamps and tx hashes) |
+| POST | `/api/v1/receipts/{id}/replay` | `MATCH`/`MISMATCH` with every check (receipt integrity, decision replay incl. engine version and explanation, authority binding, onchain state); `original` / `replay` carry state, reason codes and the first reason |
+| POST | `/api/v1/receipts/{id}/tamper-test` | changes one numeric evidence value by its smallest unit **in memory only** and reports the recomputed `evidence_root` (`MISMATCH`) and receipt hash (`receipt_integrity: INVALID`); `stored_data_modified: false` |
 | GET | `/api/v1/audit` · `/api/v1/audit/verify` | hash-chained audit events and integrity check |
 
 ### System & chain
@@ -76,6 +78,7 @@ curl -s -XPOST $B/receipts/$RID/replay | jq '{result, chain_verification}'   # M
 |---|---|---|
 | POST | `/api/v1/demo/evidence/{evidence_id}/{valid\|stale\|remove\|conflict\|threshold}` | changes exactly one item → new evidence set (items badged `INJECTED`, provider `demo-lab`) |
 | POST | `/api/v1/demo/contracts/{id}/conditions/{condition}?requirement_id=` | same, targeting a requirement |
+| POST | `/api/v1/demo/contracts/{id}/test/{valid\|threshold\|missing\|stale\|conflict}` | the web app's *Test the gate*: sets a passing market baseline, applies exactly one condition, acquires and decides → `201 {condition, requirement_id, expected_state, evidence, decision}`. Order-independent: each call starts from the same baseline. Expected: AUTHORIZE · DENY · ABSTAIN · REFRESH · ESCALATE |
 | GET / PUT | `/api/v1/demo/market` · POST `/api/v1/demo/market/reset` | simulated market values used by `SIMULATED` sources |
 | GET | `/api/v1/demo/scenarios` · `/api/v1/demo/scenarios/{id}` | versioned scenarios |
 | POST | `/api/v1/demo/scenarios/{id}/run` (also `/demo/scenarios/{id}/run`) | `{execute?: bool, stop_before?: op}` → full timeline |

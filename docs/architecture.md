@@ -26,6 +26,22 @@ flowchart LR
   R2 --> RP
 ```
 
+## Web app (apps/web)
+
+The Next.js app is a view over the API, never a second decision-maker. Browsers call `/api/v1/*` on the web origin; a
+route handler forwards to `SUFFICIA_API_URL` (read at runtime) and adds `X-API-Key` server-side when configured, so the
+API needs no CORS and no key reaches a browser.
+
+```
+browser ──/api/v1/*──▶ Next.js route handler ──▶ FastAPI (single process) ──▶ EvidenceGate (LOCAL_EVM or Monad)
+   ▲                         (runtime URL + key)
+   └── 01 Mission → 02 Evidence Contract → 03 Live Gate → 04 Execution → 05 Receipt / Replay
+```
+
+Every state shown — decision, reasons, observed values, authorization countdown, transaction hashes, replay checks — is
+read from API responses. The UI only enables *Execute* for an `AUTHORIZE` decision whose authorization the API reports
+active; the API independently answers `403` for everything else.
+
 ## Components (apps/api/sufficia)
 
 | Package | Responsibility | Never does |

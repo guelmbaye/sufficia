@@ -1,23 +1,30 @@
 # SUFFICIA — one-command developer & judge experience (Document 06 §112).
-#   make install   install Python + contract toolchains
-#   make verify    contracts build + all backend tests + benchmark 50/50 + integration + fixture/schema gates
+#   make install   install Python, contract and web toolchains
+#   make verify    contracts + backend tests + benchmark 50/50 + integration + fixture/schema gates + web lint/types/unit/build
+#   make e2e       browser end-to-end tests (real API + production web server); writes screenshots A/B/C
 #   make api       run the API on http://127.0.0.1:8000 (docs at /docs)
+#   make web       run the web app on http://127.0.0.1:3000 (needs `make api` in another terminal)
 #   make evidence  regenerate docs/evidence/* from real runs
 
 PY      ?= python3
 API_DIR := apps/api
+WEB_DIR := apps/web
 export PYTHONPATH := $(CURDIR)/$(API_DIR)
 
 .PHONY: install install-py install-contracts contracts contracts-check test test-contracts benchmark integration \
-        fixtures-check schemas schemas-check verify api demo evidence deploy-local deploy-testnet migrate live clean docker
+        fixtures-check schemas schemas-check verify api demo evidence deploy-local deploy-testnet migrate live clean docker \
+        install-web web web-build web-check e2e screenshots
 
-install: install-py install-contracts
+install: install-py install-contracts install-web
 
 install-py:
 	$(PY) -m pip install -e "$(API_DIR)[dev]" -e packages/sdk/python
 
 install-contracts:
 	cd contracts && npm ci
+
+install-web:
+	cd $(WEB_DIR) && npm ci
 
 contracts:
 	cd contracts && npm run build
@@ -46,11 +53,26 @@ schemas:
 schemas-check:
 	$(PY) $(API_DIR)/scripts/export_schemas.py --check
 
-verify: contracts contracts-check fixtures-check schemas-check test benchmark integration
+web-check:
+	cd $(WEB_DIR) && npm run lint && npm run typecheck && npm run test
+
+web-build:
+	cd $(WEB_DIR) && npm run build
+
+e2e: web-build
+	cd $(WEB_DIR) && PYTHON=$(PY) npx playwright test
+
+screenshots: web-build
+	cd $(WEB_DIR) && PYTHON=$(PY) npx playwright test e2e/grand-prize.spec.ts
+
+verify: contracts contracts-check fixtures-check schemas-check test benchmark integration web-check web-build
 	@echo "SUFFICIA verify: OK"
 
 api:
 	cd $(API_DIR) && $(PY) -m uvicorn sufficia.api.app:app --host 127.0.0.1 --port 8000
+
+web:
+	cd $(WEB_DIR) && npm run dev
 
 demo:
 	curl -s -X POST http://127.0.0.1:8000/api/v1/demo/scenarios/grand-prize-v1/run | $(PY) -m json.tool
@@ -74,4 +96,5 @@ docker:
 	docker compose up --build
 
 clean:
-	find . -name __pycache__ -type d -prune -exec rm -rf {} + ; rm -rf $(API_DIR)/.pytest_cache $(API_DIR)/.hypothesis $(API_DIR)/sufficia.db*
+	find . -name __pycache__ -type d -prune -exec rm -rf {} + ; rm -rf $(API_DIR)/.pytest_cache $(API_DIR)/.hypothesis $(API_DIR)/sufficia.db* \
+	  $(WEB_DIR)/.next $(WEB_DIR)/test-results $(WEB_DIR)/playwright-report $(WEB_DIR)/tsconfig.tsbuildinfo

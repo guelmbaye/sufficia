@@ -1,0 +1,128 @@
+@import "tailwindcss";
+@import "@fontsource-variable/archivo/wdth.css";
+@import "@fontsource-variable/jetbrains-mono/index.css";
+
+/* ---------------------------------------------------------------------------------------------
+   SUFFICIA design tokens
+   Ink and signal blue come from the logo. Decision colors are the conventional semantic set the
+   UX spec requires (Document 05 §20); every state also carries an icon and a label.
+   --------------------------------------------------------------------------------------------- */
+@theme {
+  --color-ink: #0b1733;
+  --color-ink-2: #2c3852;
+  --color-muted: #5a6475;
+  --color-faint: #8a93a3;
+  --color-canvas: #eef1f5;
+  --color-paper: #ffffff;
+  --color-rule: #d5dce6;
+  --color-rule-strong: #b7c1cf;
+  --color-signal: #1e4fe0;
+  --color-signal-tint: #e8eefc;
+
+  --color-deny: #b3261e;
+  --color-deny-tint: #fbedec;
+  --color-allow: #0e7a4b;
+  --color-allow-tint: #e7f4ed;
+  --color-hold: #9a5b00;
+  --color-hold-tint: #fcf2e1;
+  --color-abstain: #4a5568;
+  --color-abstain-tint: #eceff3;
+
+  --font-sans: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SFMono-Regular", monospace;
+
+  /* type scale, ratio ~1.25 from a 15px body */
+  --text-2xs: 0.75rem;
+  --text-xs: 0.8125rem;
+  --text-sm: 0.875rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-4xl: 3rem;
+  --text-5xl: 3.75rem;
+}
+
+@layer base {
+  html {
+    color: var(--color-ink);
+    background: var(--color-canvas);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    font-size: var(--text-base);
+    line-height: 1.5;
+    min-height: 100vh;
+    background: var(--color-canvas);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-signal);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  ::selection {
+    background: var(--color-signal-tint);
+  }
+}
+
+@utility font-expanded {
+  font-stretch: 125%;
+}
+@utility font-wide {
+  font-stretch: 112%;
+}
+@utility font-narrow {
+  font-stretch: 88%;
+}
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* One orchestrated moment: when a decision arrives the connectors draw into the gate, then the
+   gate states its decision. Everything else is still. */
+@keyframes draw-connector {
+  from {
+    stroke-dashoffset: var(--len, 400);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes gate-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.connector-draw {
+  stroke-dasharray: var(--len, 400);
+  animation: draw-connector 520ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.gate-in {
+  animation: gate-in 260ms 380ms ease-out both;
+}
+@keyframes pulse-dot {
+  50% {
+    opacity: 0.35;
+  }
+}
+.pulse-dot {
+  animation: pulse-dot 1.1s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .connector-draw,
+  .gate-in,
+  .pulse-dot {
+    animation: none !important;
+    stroke-dasharray: none;
+  }
+}

@@ -1,6 +1,6 @@
 # 05 — x402 proof
 
-Generated 2026-09-30T21:21:05.758214+00:00 · commit `e90fec6a0df4ea3694fbb7af6a20d81194f8f406`
+Generated 2026-09-30T22:07:30.796239+00:00 · commit `364154322be75056eed7a55374ac8c9dfc6cd274`
 
 > **SIMULATED SETTLEMENT.** These payments were made against the *local x402 reference resource server* (`/_dev/x402`): the client performed the full x402 v2 `exact` flow (402 → EIP-3009 TransferWithAuthorization signed with EIP-712 → `PAYMENT-SIGNATURE` → verified server-side, nonce single-use), but nothing was settled onchain. Set `X402_EVIDENCE_URL` + `EVIDENCE_PAYMENT_PRIVATE_KEY` and `EVIDENCE_PROFILE=live` for a Monad-settled payment (facilitator `https://x402-facilitator.molandak.org`).
 
@@ -8,6 +8,6 @@ Generated 2026-09-30T21:21:05.758214+00:00 · commit `e90fec6a0df4ea3694fbb7af6a
 
 | Requirement | Provider | Quote | Paid | Status | Payment reference | Acquisition | Evidence item | Response hash |
 |---|---|---|---|---|---|---|---|---|
-| req_liquidity | x402-reference | 0.02 USDC | 0.02 signed, not settled onchain | SIMULATED | `0x664b53d49e48451e8c0d531940a497945e8b71a612621875d0e29679d551ed25` | `acq_7ce91fd8b5ff7cac` | `ev_825898c055b2c96e` | `0xc29bd291c712407798dcbadb30d1691a21e07b8b38c08731ec4cff84e35c12ab` |
+| req_liquidity | x402-reference | 0.02 USDC | 0.02 signed, not settled onchain | SIMULATED | `0xb1bb3bb87dcf49e21746b501a98b5fc400aa3e3f586f0c34c9e124d1c75e93aa` | `acq_faaa29ef34973622` | `ev_77a11988c9fcb52f` | `0xacaf4083a66ce7995e7ebd3308a00bc4a8fe6ea9bfec5d53ce9d63cf56396bef` |
 
 Payment success never makes evidence valid: the paid observation above went through the same normalizer and Decision Engine as every other item (see 02-security-invariants.md, INV-12).

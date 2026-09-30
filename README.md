@@ -14,16 +14,41 @@
 ## Run it (2 minutes, no keys, no network)
 
 ```bash
-make install          # pip install -e apps/api[dev] + contracts npm ci
-make api              # http://127.0.0.1:8000/docs
-make demo             # runs grand-prize-v1: DENY -> 403 -> fresh evidence -> AUTHORIZE -> execute -> receipt -> replay
-make verify           # contracts + 1,260+ backend tests + 50/50 benchmark + HTTP integration + schema/fixture gates
+make install          # pip install -e apps/api[dev] + contracts npm ci + web npm ci
+make api              # API on http://127.0.0.1:8000/docs
+make web              # web app on http://127.0.0.1:3000 (second terminal) → open /demo
+make verify           # contracts + 1,270+ backend tests + 50/50 benchmark + HTTP integration + schema/fixture gates
+                      #   + web lint, types, unit tests and production build
+make e2e              # browser end-to-end tests against the real stack; writes screenshots A/B/C below
 ```
 
+Or everything in containers: `docker compose up --build` → web app on `:3000`, API on `:8000`.
+`make demo` runs the same Grand Prize scenario headless over HTTP.
+
 Without configuration the API runs the **demo profile on an in-process EVM that executes the real `EvidenceGate`
-bytecode** (`CHAIN_MODE=LOCAL_EVM`). Point it at Monad with `make deploy-testnet` and `CHAIN_MODE=MONAD_TESTNET`
-(see [docs/deployment.md](docs/deployment.md)). Every evidence card carries its source mode — `LIVE`, `RECORDED`,
-`SIMULATED` or `INJECTED` — and simulated things are never presented as live.
+bytecode** (`CHAIN_MODE=LOCAL_EVM`), and the web app says so in its header: *Local EVM rehearsal (not Monad)*. Point it
+at Monad with `make deploy-testnet` and `CHAIN_MODE=MONAD_TESTNET` (see [docs/deployment.md](docs/deployment.md)).
+Every evidence card carries its source mode — `LIVE`, `RECORDED`, `SIMULATED` or `INJECTED` — and simulated things
+are never presented as live.
+
+## The web app
+
+Five screens, one decision each (Document 05). `/demo` opens the Grand Prize scenario directly on the Live Gate.
+
+| | Screen | Question it answers |
+|---|---|---|
+| 01 | Mission `/` | What should the agent do? (live preview of what is enforced — and what is *not* understood, so not enforced) |
+| 02 | Evidence Contract `/contract/{id}` | What must be true before money can move? |
+| 03 | Live Gate `/gate/{id}` | May this action execute now? Evidence rows are wired into the gate; the rows that explain the decision are drawn in its color. *Test the gate*: Valid · Threshold fail · Missing · Stale · Conflict |
+| 04 | Execution `/execution/{id}` | Is the authorization still valid, bound to this exact action, and did it execute? |
+| 05 | Receipt `/receipt/{id}` | Why did this action happen — or why was it blocked? History, evidence, integrity, deterministic replay, tamper test, run comparison |
+
+| A — Denied | B — Authorized | C — Receipt and replay |
+|---|---|---|
+| ![Execution denied: liquidity $92,440, required more than $500,000](docs/evidence/screenshots/A-denied.png) | ![Execution authorized with a 30-second evidence-bound window](docs/evidence/screenshots/B-authorized.png) | ![Receipt with deterministic replay verified](docs/evidence/screenshots/C-receipt.png) |
+
+The screenshots are produced by the end-to-end test (`make screenshots`), not mocked. Keyboard: `1` live gate,
+`2` receipt, `3` proof drawer (benchmark, onchain transactions, audit log).
 
 ## What happens, step by step
 
@@ -91,7 +116,8 @@ Generated from real runs by `make evidence` (never typed by hand): [docs/evidenc
 ```
 apps/api/            FastAPI service: intent compiler, evidence acquisition + x402, decision engine, chain gateway,
                      receipts, replay, Demo Lab, audit log   (sufficia/…, tests/…, migrations/, scripts/)
-apps/web/            Web app (next phase)
+apps/web/            Next.js web app: Mission, Evidence Contract, Live Gate, Execution, Receipt + Replay
+                     (src/app/…, src/components/…, tests/unit, e2e/ — Playwright against the real API)
 contracts/           EvidenceGate.sol, DemoSwapRouter.sol, DemoERC20.sol, Foundry tests, deploy script
 packages/schemas/    Generated JSON Schemas + OpenAPI
 packages/sdk/        Minimal Python SDK (EvidenceGate.evaluate / execute / replay)

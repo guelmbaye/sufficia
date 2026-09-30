@@ -1,5 +1,5 @@
-# docker compose up --build            -> API on :8000 with SQLite + in-process EVM (demo)
-# docker compose --profile postgres up  -> same API backed by PostgreSQL
+# docker compose up --build            -> web app on :3000, API on :8000 (SQLite + in-process EVM, demo)
+# docker compose --profile postgres up  -> same stack with the API backed by PostgreSQL
 services:
   api:
     build:
@@ -16,6 +16,20 @@ services:
     volumes:
       - sufficia-data:/data
       - ./deployments:/srv/deployments:ro
+    restart: unless-stopped
+
+  web:
+    build:
+      context: apps/web
+    ports:
+      - "3000:3000"
+    environment:
+      # read at runtime by the /api/v1 proxy; the browser never talks to the API directly
+      SUFFICIA_API_URL: http://api:8000
+      SUFFICIA_API_KEY: ${API_KEY:-}
+    depends_on:
+      api:
+        condition: service_healthy
     restart: unless-stopped
 
   postgres:
