@@ -920,7 +920,7 @@ class Sufficia:
             txs = s.execute(
                 select(ChainTransactionRow).where(ChainTransactionRow.related_id == authorization_id).order_by(ChainTransactionRow.id)
             ).scalars().all()
-            view["transactions"] = [self._chain_tx_view(t) for t in txs]
+            view["transactions"] = self._tx_views(s, list(txs))
         gw = self.rt.gateway(required=False)
         if gw is not None and gw.info.gate_address.lower() == view["gate_address"].lower():
             try:
@@ -936,6 +936,18 @@ class Sufficia:
             except Exception as exc:  # read-only enrichment; never hides the stored state
                 view["onchain"] = {"error": f"{type(exc).__name__}: {exc}"}
         return view
+
+    def _tx_views(self, s: Session, rows: list[ChainTransactionRow]) -> list[dict[str, Any]]:
+        """Transactions with their decoded EvidenceGate events (from chain_events)."""
+        views = [self._chain_tx_view(t) for t in rows]
+        ids = [t.id for t in rows]
+        if ids:
+            events: dict[int, list[dict[str, Any]]] = {}
+            for e in s.execute(select(ChainEventRow).where(ChainEventRow.chain_tx_id.in_(ids)).order_by(ChainEventRow.id)).scalars():
+                events.setdefault(e.chain_tx_id, []).append({"event": e.event, "log_index": e.log_index, "args": loads(e.args)})
+            for v in views:
+                v["events"] = events.get(v["id"], [])
+        return views
 
     @staticmethod
     def _chain_tx_view(t: ChainTransactionRow) -> dict[str, Any]:
@@ -1129,7 +1141,7 @@ class Sufficia:
             row = s.get(ExecutionRow, exec_id)
             view = self._exec_view(row)
             txs = s.execute(select(ChainTransactionRow).where(ChainTransactionRow.operation_id == exec_id)).scalars().all()
-            view["transactions"] = [self._chain_tx_view(t) for t in txs]
+            view["transactions"] = self._tx_views(s, list(txs))
             rec = s.execute(select(ReceiptRow).where(ReceiptRow.execution_id == exec_id)).scalar_one_or_none()
             view["receipt_id"] = rec.id if rec else None
             view["idempotent"] = idempotent
@@ -1451,7 +1463,7 @@ class Sufficia:
     def chain_transactions(self, limit: int = 100) -> list[dict[str, Any]]:
         with self.rt.db.session() as s:
             rows = s.execute(select(ChainTransactionRow).order_by(ChainTransactionRow.id.desc()).limit(limit)).scalars().all()
-            return [self._chain_tx_view(r) for r in rows]
+            return self._tx_views(s, list(rows))
 
     def stats(self) -> dict[str, Any]:
         with self.rt.db.session() as s:

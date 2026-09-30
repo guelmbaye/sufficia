@@ -271,7 +271,7 @@ def write_monad(out: Path, commit: str, p: dict[str, Any]) -> None:
     auth = p["authorization"]
     txs = {t["purpose"]: t for t in auth["transactions"]}
     ex = p["execution"]
-    events = [e for t in ex["transactions"] for e in (t.get("events") or [])]
+    events = [(t["purpose"], t["tx_hash"], e) for t in auth["transactions"] for e in (t.get("events") or [])]
     head = (
         "> **LOCAL REHEARSAL — NOT MONAD.** This file was generated with `CHAIN_MODE=LOCAL_EVM`: the real EvidenceGate "
         "bytecode ran on an in-process py-evm chain. Regenerate on Monad testnet with "
@@ -298,10 +298,10 @@ def write_monad(out: Path, commit: str, p: dict[str, Any]) -> None:
         f"- Execution tx: {link(ex['tx_hash'])} (status {ex['status']})",
         f"- Receipt hash: `{p['receipt']['receipt_hash']}` · commitment tx: {link(p['receipt']['commitment']['tx_hash'])} "
         f"({p['receipt']['commitment']['status']})",
-        "", "## Execution events", "",
+        "", "## EvidenceGate events (decoded from receipts)", "",
     ]
-    for e in events:
-        lines.append(f"- `{e['event']}` {json.dumps(e.get('args'), sort_keys=True)}")
+    for purpose, tx_hash, e in events:
+        lines.append(f"- {purpose} `{e['event']}` {json.dumps(e.get('args'), sort_keys=True)}")
     lines += [
         "", "## Blocked decision (no transaction)", "",
         f"- Decision `{p['deny']['decision']['decision_id']}`: **{p['deny']['decision']['state']}** "

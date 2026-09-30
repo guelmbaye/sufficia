@@ -165,3 +165,15 @@ def test_alembic_migration_matches_the_orm(tmp_path):
     for name, table in Base.metadata.tables.items():
         assert {c["name"] for c in insp.get_columns(name)} == {c.name for c in table.columns}, name
     subprocess.run([sys.executable, "-m", "alembic", "downgrade", "base"], cwd=root, env=env, check=True, capture_output=True)
+
+
+def test_execution_exposes_decoded_gate_events(client, flow):
+    client.put("/api/v1/demo/market", json={"values": {"available_liquidity": "718000"}})
+    d = flow.decide(flow.contract())["decision"]
+    ex = client.post(f"/api/v1/decisions/{d['decision_id']}/execute").json()
+    events = [e["event"] for t in ex["transactions"] for e in t["events"]]
+    assert events == ["AuthorizationConsumed", "ProtectedExecution"]
+    detail = client.get(f"/api/v1/authorizations/{ex['authorization']['authorization_id']}").json()
+    by_purpose = {t["purpose"]: [e["event"] for e in t["events"]] for t in detail["transactions"]}
+    assert by_purpose["INTENT_REGISTER"] == ["IntentRegistered"] and by_purpose["AUTHORIZATION"] == ["ExecutionAuthorized"]
+    assert by_purpose["RECEIPT_COMMITMENT"] == ["ReceiptCommitted"]

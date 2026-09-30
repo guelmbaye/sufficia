@@ -1,0 +1,60 @@
+{
+  "generated_at": "2026-09-30T21:18:23.870129+00:00",
+  "commit": "7af4b7712a69ee13816ca1dc2f2fb8c7ead2c4bf",
+  "version": "1.0.0",
+  "benchmark": {
+    "total_cases": "50",
+    "passed_cases": "50",
+    "decision_correct": "50",
+    "decision_correctness_pct": "100.00",
+    "reason_correct": "50",
+    "reason_fidelity_pct": "100.00",
+    "expectations_met": "50",
+    "expectation_match_pct": "100.00",
+    "explanation_faithful": "50",
+    "explanation_fidelity_pct": "100.00",
+    "replay_matched": "50",
+    "replay_fidelity_pct": "100.00",
+    "authorizations_issued": "10",
+    "authorizations_verified": "10",
+    "non_authorize_decisions": "40",
+    "non_authorize_refused": "40",
+    "unauthorized_authorizations": "0",
+    "advisories": "0"
+  },
+  "benchmark_ok": true,
+  "scenarios": {
+    "scenarios": 6,
+    "passed": 6
+  },
+  "proof": {
+    "chain_mode": "LOCAL_EVM",
+    "evidence_gate": "0x6E05f58eEddA592f34DD9105b1827f252c509De0",
+    "execution_tx": "0x472bf27a15d2abc0a1a5682e9536f7a1586be865e0582eba1679b1569aabfb66",
+    "authorization_tx": "0x828346ece32d987d71b326d32b8d05df37cb93e697b5d16c3f95ed032cb4d094",
+    "receipt_hash": "0x01eb2c0e343fc05887154f819bae6143d4e6e1d835e16c266fcff82c2ccc2339",
+    "replay": "MATCH",
+    "audit_chain_valid": true,
+    "unauthorized_executions": 0
+  },
+  "security": {
+    "invariants": 15,
+    "passing": 15,
+    "ok": true
+  },
+  "contracts": {
+    "evm_tests": {
+      "tests": 216,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 216
+    },
+    "chain_tests": {
+      "tests": 287,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 287
+    },
+    "foundry_tests": 30
+  }
+}
