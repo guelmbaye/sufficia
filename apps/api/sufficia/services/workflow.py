@@ -592,7 +592,11 @@ class Sufficia:
                 age = Decimal(str((now - it.temporal.observed_at).total_seconds())).quantize(Decimal("0.001"))
             views.append({"item": it, "badge": badge(it), "item_hash": evidence_item_hash(it), "age_seconds_now": age})
         acq = loads(row.acquisition)
+        injection = None
+        if row.origin == "INJECTION" and acq.get("condition"):
+            injection = {"condition": acq["condition"], "requirement_id": acq.get("requirement_id"), "detail": acq.get("detail")}
         return {
+            "injection": injection,
             "evidence_set_id": row.id,
             "contract_id": row.contract_id,
             "origin": row.origin,
@@ -1283,11 +1287,92 @@ class Sufficia:
                 t = s.execute(select(ChainTransactionRow).where(ChainTransactionRow.tx_hash == row.commitment_tx_hash)).scalars().first()
                 commit_tx = self._chain_tx_view(t) if t else None
             audit_chain = self._audit_chain(s, body, row)
+            timeline = self._receipt_timeline(s, body, row)
         return {
             "receipt": body,
             "receipt_hash": row.receipt_hash,
             "commitment": {"status": row.commitment_status, "tx_hash": row.commitment_tx_hash, "error": row.commitment_error, "transaction": commit_tx},
             "audit_chain": audit_chain,
+            "timeline": timeline,
+        }
+
+    def _receipt_timeline(self, s: Session, body: EvidenceReceipt, row: ReceiptRow) -> list[dict[str, Any]]:
+        """Document 05 §34: the chronological, forensic history of one decision, from stored timestamps only."""
+        drow = s.get(DecisionRow, body.decision_id)
+        crow = s.get(ContractRow, body.contract_id)
+        irow = s.get(IntentRow, body.intent_id)
+        set_row = s.get(EvidenceSetRow, drow.evidence_set_id) if drow else None
+        steps: list[dict[str, Any]] = [
+            {"step": "intent", "label": "Human intent", "at": irow.created_at if irow else None},
+            {"step": "contract", "label": "Evidence Contract frozen", "at": crow.frozen_at if crow else None},
+            {"step": "evidence", "label": "Evidence acquired" if set_row is None or set_row.origin == "ACQUISITION"
+             else f"Evidence set changed ({set_row.label})", "at": set_row.created_at if set_row else None},
+            {"step": "decision", "label": "Requirements verified", "at": body.evaluated_at,
+             "state": body.decision_state.value},
+        ]
+        arow = s.execute(select(AuthorizationRow).where(AuthorizationRow.decision_id == body.decision_id)).scalar_one_or_none()
+        if body.decision_state != DecisionState.AUTHORIZE:
+            steps.append({"step": "blocked", "label": "Execution blocked: no authorization issued", "at": row.created_at})
+        elif arow is not None:
+            steps.append({"step": "authorized", "label": "Execution authorized", "at": arow.created_at})
+            tx = s.execute(
+                select(ChainTransactionRow).where(
+                    ChainTransactionRow.related_id == arow.id, ChainTransactionRow.purpose == TxPurpose.AUTHORIZATION.value
+                ).order_by(ChainTransactionRow.id)
+            ).scalars().first()
+            if tx is not None:
+                steps.append({"step": "committed", "label": "Authorization committed onchain", "at": tx.confirmed_at or tx.created_at,
+                              "tx_hash": tx.tx_hash})
+        if body.execution.get("tx_hash"):
+            steps.append({"step": "executed", "label": "Protected action executed" if body.kind == "EXECUTED" else "Execution failed",
+                          "at": body.execution.get("confirmed_at"), "tx_hash": body.execution.get("tx_hash")})
+        elif body.kind == "EXPIRED":
+            steps.append({"step": "expired", "label": "Authorization expired before execution", "at": row.created_at})
+        steps.append({"step": "receipt", "label": "Receipt generated", "at": row.created_at, "receipt_hash": row.receipt_hash})
+        return steps
+
+    def tamper_test(self, receipt_id: str) -> dict[str, Any]:
+        """Document 05 §41: shows that changing ONE evidence value by the smallest unit breaks the evidence
+        root and the receipt hash. Computed in memory; nothing stored is modified."""
+        from ..canonical.hashes import evidence_item_hash as _item_hash
+
+        with self.rt.db.session() as s:
+            row = s.get(ReceiptRow, receipt_id)
+            if row is None:
+                raise not_found("receipt", receipt_id)
+            body = EvidenceReceipt.model_validate(loads(row.body))
+            drow = s.get(DecisionRow, body.decision_id)
+            snapshot = drow.snapshot
+            committed = row.commitment_tx_hash
+        items = load_snapshot(snapshot)["evidence_set"].items
+        numeric = [i for i in items if isinstance(i.claim.value, (int, Decimal)) and not isinstance(i.claim.value, bool)]
+        if not numeric:
+            raise ApiError(409, "NOTHING_TO_TAMPER", "this receipt has no numeric evidence value")
+        numeric.sort(key=lambda i: (i.claim.name != "available_liquidity", i.evidence_id))
+        target = numeric[0]
+        original = Decimal(target.claim.value)
+        tampered_value = original + 1
+        tampered_item = target.model_copy(update={"claim": target.claim.model_copy(update={"value": tampered_value})})
+        tampered_items = [tampered_item if i.evidence_id == target.evidence_id else i for i in items]
+        tampered_root = evidence_root(_item_hash(i) for i in tampered_items)
+        recomputed_root = evidence_root(_item_hash(i) for i in items)
+        tampered_body = body.model_copy(update={"evidence_root": tampered_root, "receipt_hash": None})
+        tampered_hash = compute_receipt_hash(tampered_body)
+        return {
+            "receipt_id": receipt_id,
+            "evidence_id": target.evidence_id,
+            "claim": target.claim.name,
+            "original_value": original,
+            "tampered_value": tampered_value,
+            "original_evidence_root": body.evidence_root,
+            "recomputed_evidence_root": recomputed_root,
+            "tampered_evidence_root": tampered_root,
+            "evidence_root": "MATCH" if tampered_root == body.evidence_root else "MISMATCH",
+            "original_receipt_hash": row.receipt_hash,
+            "tampered_receipt_hash": tampered_hash,
+            "receipt_integrity": "VALID" if tampered_hash == row.receipt_hash else "INVALID",
+            "onchain_commitment_tx": committed,
+            "stored_data_modified": False,
         }
 
     def _audit_chain(self, s: Session, body: EvidenceReceipt, row: ReceiptRow) -> list[dict[str, Any]]:
@@ -1375,6 +1460,13 @@ class Sufficia:
         check("evidence_root", original.evidence_root, replayed.evidence_root, group="decision")
         check("fingerprint", original.fingerprint, replayed.fingerprint, group="decision")
         check("decision_id", original.decision_id, replayed.decision_id, group="decision")
+        check("engine_version", original.engine_version, replayed.engine_version, group="decision")
+        check(
+            "explanation",
+            [r.message for r in original.reasons],
+            [r.message for r in replayed.reasons],
+            group="decision",
+        )
         check(
             "requirement_statuses",
             [(r.requirement_id, r.status.value) for r in original.requirement_results],
@@ -1437,8 +1529,10 @@ class Sufficia:
                 "current_engine_version": ENGINE_VERSION,
                 "evidence_items": original.evidence_count,
             },
-            "original": {"state": original.state, "reason_codes": original.reason_codes, "decision_id": original.decision_id},
-            "replay": {"state": replayed.state, "reason_codes": replayed.reason_codes, "decision_id": replayed.decision_id},
+            "original": {"state": original.state, "reason_codes": original.reason_codes, "decision_id": original.decision_id,
+                         "reason": original.reasons[0].message if original.reasons else None},
+            "replay": {"state": replayed.state, "reason_codes": replayed.reason_codes, "decision_id": replayed.decision_id,
+                       "reason": replayed.reasons[0].message if replayed.reasons else None},
             "chain_verification": chain_status,
             "checks": checks,
         }

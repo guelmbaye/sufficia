@@ -1037,6 +1037,56 @@
         ]
       }
     },
+    "/api/v1/demo/contracts/{contract_id}/test/{condition}": {
+      "post": {
+        "description": "'Test the Gate' (Document 05 \u00a724-26): valid | threshold | missing | stale | conflict -> fresh evidence,\none mutation, a new decision.",
+        "operationId": "test_condition_api_v1_demo_contracts__contract_id__test__condition__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "contract_id",
+            "required": true,
+            "schema": {
+              "title": "Contract Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "condition",
+            "required": true,
+            "schema": {
+              "title": "Condition",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Test Condition",
+        "tags": [
+          "demo"
+        ]
+      }
+    },
     "/api/v1/demo/evidence/{evidence_id}/{condition}": {
       "post": {
         "operationId": "inject_on_evidence_api_v1_demo_evidence__evidence_id___condition__post",
@@ -1681,6 +1731,47 @@
           }
         },
         "summary": "Replay",
+        "tags": [
+          "authority"
+        ]
+      }
+    },
+    "/api/v1/receipts/{receipt_id}/tamper-test": {
+      "post": {
+        "description": "Changes one evidence value by the smallest unit, in memory only, and shows the integrity break.",
+        "operationId": "tamper_test_api_v1_receipts__receipt_id__tamper_test_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "receipt_id",
+            "required": true,
+            "schema": {
+              "title": "Receipt Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Tamper Test",
         "tags": [
           "authority"
         ]

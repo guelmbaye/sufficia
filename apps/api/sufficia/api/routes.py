@@ -320,6 +320,12 @@ def replay(request: Request, receipt_id: str):
     return ok(_app(request).replay_receipt(receipt_id))
 
 
+@core.post("/receipts/{receipt_id}/tamper-test")
+def tamper_test(request: Request, receipt_id: str):
+    """Changes one evidence value by the smallest unit, in memory only, and shows the integrity break."""
+    return ok(_app(request).tamper_test(receipt_id))
+
+
 # =============================================================================================
 # Demo Lab & scenarios (demo mode only)
 # =============================================================================================
@@ -342,6 +348,13 @@ def inject_on_evidence(request: Request, evidence_id: str, condition: str):
 @demo.post("/contracts/{contract_id}/conditions/{condition}", status_code=201)
 def inject_on_contract(request: Request, contract_id: str, condition: str, requirement_id: Optional[str] = Query(None, max_length=64)):
     return ok(_lab(request).inject(_condition(condition), contract_id=contract_id, requirement_id=requirement_id), status_code=201)
+
+
+@demo.post("/contracts/{contract_id}/test/{condition}", status_code=201)
+def test_condition(request: Request, contract_id: str, condition: str):
+    """'Test the Gate' (Document 05 §24-26): valid | threshold | missing | stale | conflict -> fresh evidence,
+    one mutation, a new decision."""
+    return ok(_lab(request).test_condition(contract_id, condition.lower()), status_code=201)
 
 
 @demo.get("/market")

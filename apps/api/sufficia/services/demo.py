@@ -262,6 +262,51 @@ class DemoLab:
         view["injection"] = {"condition": condition, "requirement_id": req.id, "detail": detail}
         return view
 
+    # ---- "Test the Gate" (Document 05 §24-26) ------------------------------------------------
+    TEST_EXPECTATIONS = {
+        "valid": "AUTHORIZE",
+        "threshold": "DENY",
+        "missing": "ABSTAIN",
+        "stale": "REFRESH",
+        "conflict": "ESCALATE",
+    }
+
+    def test_condition(self, contract_id: str, condition: str) -> dict[str, Any]:
+        """One deterministic test condition = one evidence change, on an otherwise valid and fresh set.
+
+        Every click starts from the same baseline (every requirement satisfiable, freshly acquired through
+        the contract's normal sources, x402 included), then applies exactly one mutation, then decides.
+        Same agent, same intent, same contract, same wallet: only the evidence differs (Document 05 §5).
+        """
+        self._require_demo()
+        condition = "remove" if condition == "missing" else condition
+        if condition not in ("valid", "threshold", "remove", "stale", "conflict"):
+            raise ApiError(404, "UNKNOWN_CONDITION", "condition must be one of valid, threshold, missing, stale, conflict")
+        with self.rt.db.session() as s:
+            _, contract = self.app._contract(s, contract_id)
+        asset = contract.action.asset
+        baseline: dict[str, Any] = {}
+        for r in contract.requirements:
+            spec = get_claim(r.claim)
+            if spec is not None and spec.numeric and r.operator != Operator.NOT_EXISTS:
+                baseline[r.claim] = str(_passing_value(r))
+        target = self._target_requirement(contract, condition, None)
+        if condition == "threshold":
+            baseline[target.claim] = str(_failing_value(target))
+        self.set_market(asset, baseline)
+        evidence = self.app.acquire(contract_id)
+        if condition in ("remove", "stale", "conflict"):
+            evidence = self.inject(condition, contract_id=contract_id, requirement_id=target.id)
+        decision = self.app.decide(contract_id)
+        public = "missing" if condition == "remove" else condition
+        return {
+            "condition": public,
+            "requirement_id": target.id,
+            "expected_state": self.TEST_EXPECTATIONS[public],
+            "evidence": evidence,
+            "decision": decision,
+        }
+
     @staticmethod
     def _target_requirement(contract: EvidenceContract, condition: str, requirement_id: Optional[str]) -> Requirement:
         if requirement_id:
