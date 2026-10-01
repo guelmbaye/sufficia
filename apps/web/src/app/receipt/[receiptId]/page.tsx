@@ -4,16 +4,16 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 
-import { ErrorNote } from "@/components/ErrorNote";
+import { LoadError } from "@/components/LoadError";
 import { CompareRuns } from "@/components/receipt/CompareRuns";
 import { EvidenceTable, IntegrityPanel, ReceiptTimeline } from "@/components/receipt/ReceiptParts";
 import { ReplayPanel, TamperTest } from "@/components/receipt/Replay";
 import { StateIcon } from "@/components/StateIcon";
 import { api } from "@/lib/api";
-import { formatAmount, formatDateTime } from "@/lib/format";
+import { formatAmount, formatDateTime, withProviderLabels } from "@/lib/format";
 import { useLoad, useSystem } from "@/lib/hooks";
 import { useRun } from "@/lib/run";
-import { chainLabel, DECISION_META, TONE_CLASSES } from "@/lib/states";
+import { chainLabel, DECISION_META, explorerTx, TONE_CLASSES } from "@/lib/states";
 
 const HEADLINE: Record<string, string> = {
   EXECUTED: "Why did this action happen?",
@@ -27,7 +27,6 @@ export default function ReceiptPage() {
   const { receiptId } = useParams<{ receiptId: string }>();
   const { update } = useRun();
   const { system } = useSystem();
-  const chain = chainLabel(system?.chain?.mode);
   const { data: view, error } = useLoad(receiptId, () => api.receipt(receiptId));
 
   useEffect(() => {
@@ -36,22 +35,26 @@ export default function ReceiptPage() {
     }
   }, [view, receiptId, update]);
 
-  if (error) {
-    return (
-      <div className="mx-auto max-w-[1300px] px-6 py-12">
-        <ErrorNote error={error} />
-      </div>
-    );
-  }
+  if (error) return <LoadError error={error} what="Receipt" id={receiptId} />;
   if (!view) return <p className="mx-auto max-w-[1300px] px-6 py-12 text-muted">Loading the receipt…</p>;
 
   const r = view.receipt;
+  // The chain this receipt was produced on, not the chain the server runs on today.
+  const chain = chainLabel(r.chain_mode);
   const meta = DECISION_META[r.decision_state];
   const tone = TONE_CLASSES[meta.tone];
   const executed = r.kind === "EXECUTED";
   const amount = formatAmount(r.protected_amount.value, r.protected_amount.currency);
-  const explorer = (h: string) => (chain.isMonad && system?.chain?.explorer_url ? `${system.chain.explorer_url}/tx/${h}` : null);
+  const explorer = (h: string) => explorerTx(system?.chain?.explorer_url, r.chain_mode, h);
   const execLabel = { EXECUTED: "Confirmed", BLOCKED: "Blocked", FAILED: "Failed", EXPIRED: "Not submitted" }[r.kind];
+  const callout =
+    r.kind === "BLOCKED"
+      ? { border: tone.border, text: withProviderLabels(r.decision_reason) }
+      : r.kind === "EXPIRED"
+        ? { border: "border-hold", text: "The authorization expired before execution, so no transaction was submitted." }
+        : r.kind === "FAILED"
+          ? { border: "border-deny", text: `The authorized transaction failed during execution${r.execution.error_code ? ` (${r.execution.error_code})` : ""}.` }
+          : null;
 
   return (
     <div className="mx-auto max-w-[1300px] px-6 pb-16 pt-8">
@@ -82,22 +85,15 @@ export default function ReceiptPage() {
         </div>
         <div className="bg-paper px-4 py-4 sm:px-5">
           <dt className="text-sm text-muted">Network</dt>
-          <dd className="mt-1 font-wide text-lg font-bold sm:text-xl">{chain.isMonad ? chain.honest : "Local EVM"}</dd>
-          {!chain.isMonad ? <dd className="text-xs text-muted">rehearsal, not Monad</dd> : null}
+          <dd className="mt-1 font-wide text-lg font-bold sm:text-xl">{chain.display}</dd>
+          {r.chain_mode === "LOCAL_EVM" ? <dd className="text-xs text-muted">rehearsal, not Monad</dd> : null}
         </div>
       </dl>
 
-      {!executed ? (
-        <div className={`mt-4 border-l-[5px] ${tone.border} bg-paper px-5 py-4`}>
-          <p className="font-semibold">{r.decision_reason}</p>
-          <p className="mt-1 text-ink-2">
-            {r.kind === "BLOCKED"
-              ? `No ${chain.isMonad ? "Monad " : ""}execution authorization was created, so nothing could be submitted to the EvidenceGate.`
-              : r.kind === "EXPIRED"
-                ? "The authorization expired with its evidence before execution. No transaction was submitted."
-                : "The evidence policy authorized the action, but the transaction failed during execution."}
-          </p>
-        </div>
+      {callout ? (
+        <p className={`mt-4 border-l-[5px] ${callout.border} bg-paper px-5 py-4 font-semibold`} data-testid="receipt-callout">
+          {callout.text}
+        </p>
       ) : null}
 
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">

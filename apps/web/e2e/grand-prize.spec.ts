@@ -17,7 +17,8 @@ test("grand prize: denied, then authorized, executed, receipt, replay", async ({
   await expect(gate).toContainText("Available liquidity is $92,440. The Evidence Contract requires more than $500,000.");
   await expect(page.getByTestId("consequence")).toContainText("100 USDC did not move");
   await expect(page.getByTestId("row-req_liquidity")).toHaveAttribute("data-status", "FAIL");
-  await expect(page.getByTestId("protected-capital")).toContainText("Not moved");
+  await expect(page.getByTestId("protected-capital")).toContainText("100 USDC");
+  await expect(page.getByTestId("protected-capital")).not.toContainText("Executed");
   await expect(page.getByTestId("execute-disabled")).toBeDisabled();
   await expect(page.getByTestId("connectors").locator('path[data-causal="true"]')).toHaveCount(1);
   expect(Date.now() - t0).toBeLessThan(20_000);

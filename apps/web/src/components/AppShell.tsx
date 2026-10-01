@@ -24,7 +24,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "/";
   const router = useRouter();
   const { run } = useRun();
-  const { system } = useSystem();
+  const { system, error: systemError } = useSystem();
   const [proofOpen, setProofOpen] = useState(false);
   const chain = chainLabel(system?.chain?.mode);
 
@@ -101,12 +101,14 @@ export function AppShell({ children }: { children: ReactNode }) {
               title={system?.chain?.evidence_gate ? `EvidenceGate ${system.chain.evidence_gate}` : undefined}
               data-testid="chain-badge"
             >
-              <span className={`h-2 w-2 rounded-full ${chain.isMonad ? "bg-signal" : "bg-hold"}`} aria-hidden />
+              <span className={`h-2 w-2 rounded-full ${systemError ? "bg-deny" : chain.isMonad ? "bg-signal" : "bg-hold"}`} aria-hidden />
               {system ? (
                 <>
                   <span className="sm:hidden">{chain.short}</span>
                   <span className="hidden sm:inline">{chain.honest}</span>
                 </>
+              ) : systemError ? (
+                "API unreachable"
               ) : (
                 "Connecting…"
               )}

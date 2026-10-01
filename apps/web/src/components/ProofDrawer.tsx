@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { api } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import { useSystem } from "@/lib/hooks";
-import { chainLabel } from "@/lib/states";
+import { chainLabel, explorerTx } from "@/lib/states";
 import type { BenchmarkReport, ChainTx } from "@/lib/types";
 
 import { Drawer, Field } from "./Drawer";
@@ -27,11 +27,22 @@ export function ProofDrawer({ open, onClose }: { open: boolean; onClose: () => v
   const [txs, setTxs] = useState<ChainTx[]>([]);
   const [audit, setAudit] = useState<{ valid: boolean; events: number; head: string } | null>(null);
 
+  // The benchmark report is a file that does not change while the page is open: read it once. Chain
+  // transactions and the audit chain grow with every run: read them each time the drawer opens.
+  const benchRequested = useRef(false);
+  useEffect(() => {
+    if (!open || benchRequested.current) return;
+    benchRequested.current = true;
+    api.benchmark().then(setBench, () => setBenchMissing(true));
+  }, [open]);
   useEffect(() => {
     if (!open) return;
-    api.benchmark().then(setBench, () => setBenchMissing(true));
-    api.chainTransactions(12).then((r) => setTxs(r.transactions), () => setTxs([]));
-    api.auditVerify().then(setAudit, () => setAudit(null));
+    let alive = true;
+    api.chainTransactions(12).then((r) => alive && setTxs(r.transactions), () => alive && setTxs([]));
+    api.auditVerify().then((a) => alive && setAudit(a), () => alive && setAudit(null));
+    return () => {
+      alive = false;
+    };
   }, [open]);
 
   const chain = chainLabel(system?.chain?.mode);
@@ -58,7 +69,8 @@ export function ProofDrawer({ open, onClose }: { open: boolean; onClose: () => v
               ))}
             </dl>
             <p className="mt-2 text-xs text-muted">
-              50 hermetic cases (valid, missing, stale, threshold, conflict, adversarial), engine {bench.engine_version}, generated{" "}
+              {m.total_cases ?? bench.total} hermetic cases (valid, missing, stale, threshold, conflict, adversarial), engine {bench.engine_version},
+              generated{" "}
               {formatDateTime(bench.generated_at)} at commit <span className="font-mono">{String(bench.commit).slice(0, 10)}</span>.
             </p>
           </>
@@ -70,13 +82,14 @@ export function ProofDrawer({ open, onClose }: { open: boolean; onClose: () => v
       </section>
 
       <section className="mb-8">
-        <h3 className="mb-1 text-base font-semibold">Onchain</h3>
-        <p className="mb-3 text-sm text-muted">{chain.honest}</p>
+        <h3 className="mb-2 text-base font-semibold">Onchain</h3>
         <dl>
+          <Field label="Network">
+            {system?.chain?.network ?? chain.display}, chain id {system?.chain?.chain_id ?? "—"}
+          </Field>
           <Field label="EvidenceGate">
             <Hash value={system?.chain?.evidence_gate} href={explorer && chain.isMonad ? `${explorer}/address/${system?.chain?.evidence_gate}` : null} />
           </Field>
-          <Field label="Chain id">{system?.chain?.chain_id ?? "—"}</Field>
           <Field label="Authorizer">
             <Hash value={system?.chain?.authorizer} />
           </Field>
@@ -98,7 +111,7 @@ export function ProofDrawer({ open, onClose }: { open: boolean; onClose: () => v
                     {t.error_name ? `, ${t.error_name}` : ""}
                   </span>
                 </span>
-                <Hash value={t.tx_hash} href={t.explorer_url} />
+                <Hash value={t.tx_hash} href={explorerTx(explorer, system?.chain?.mode, t.tx_hash, t)} />
               </li>
             ))}
           </ul>
@@ -118,16 +131,8 @@ export function ProofDrawer({ open, onClose }: { open: boolean; onClose: () => v
       </section>
 
       <section className="mb-8">
-        <h3 className="mb-3 text-base font-semibold">How authority is produced</h3>
-        <ol className="grid grid-cols-5 gap-px overflow-hidden rounded-sm border border-rule bg-rule text-center text-xs">
-          {["Intent", "Evidence", "Verify", "Authorize", chain.isMonad ? "Monad" : "Execute"].map((s, i) => (
-            <li key={s} className="bg-paper px-2 py-3">
-              <span className="block text-2xs text-muted tabular">{i + 1}</span>
-              <span className="font-semibold">{s}</span>
-            </li>
-          ))}
-        </ol>
-        <p className="mt-3 text-sm text-ink-2">
+        <h3 className="mb-2 text-base font-semibold">How authority is produced</h3>
+        <p className="text-sm text-ink-2">
           A language model may only draft the Evidence Contract, and a draft weaker than the instruction is rejected. A deterministic
           engine decides from evidence; the EvidenceGate contract enforces the exact authorized action, once, before the evidence expires.
         </p>
@@ -138,11 +143,11 @@ export function ProofDrawer({ open, onClose }: { open: boolean; onClose: () => v
         <div className="grid grid-cols-2 gap-px overflow-hidden rounded-sm border border-rule bg-rule text-sm">
           <div className="bg-paper p-4">
             <p className="text-xs text-muted">A wallet asks</p>
-            <p className="mt-1 font-medium">Can this agent spend 100 USDC?</p>
+            <p className="mt-1 font-medium">Can this agent spend this amount?</p>
           </div>
           <div className="bg-paper p-4">
             <p className="text-xs text-muted">SUFFICIA asks</p>
-            <p className="mt-1 font-medium">Has the evidence required for this particular 100 USDC action been established?</p>
+            <p className="mt-1 font-medium">Has the evidence required for this particular action been established, right now?</p>
           </div>
         </div>
       </section>

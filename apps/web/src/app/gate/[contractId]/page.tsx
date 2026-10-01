@@ -12,23 +12,18 @@ import { IntentColumn } from "@/components/gate/IntentColumn";
 import { buildRows, type GateRow } from "@/components/gate/rows";
 import { TestConditions } from "@/components/gate/TestConditions";
 import { Hash } from "@/components/Hash";
-import { api, ApiError } from "@/lib/api";
-import { formatTime } from "@/lib/format";
-import { useSystem } from "@/lib/hooks";
+import { LoadError } from "@/components/LoadError";
+import { api, type ApiError, toApiError } from "@/lib/api";
+import { actionVerb, formatAmount, formatTime } from "@/lib/format";
+import { useDeadlinePassed, useSystem } from "@/lib/hooks";
 import { useRun } from "@/lib/run";
-import { chainLabel } from "@/lib/states";
+import { chainLabel, conditionWord } from "@/lib/states";
 import type { Condition, ContractView, DecisionView, EvidenceSetView } from "@/lib/types";
 
-const CONDITION_LABEL: Record<Condition, string> = {
-  valid: "valid",
-  threshold: "threshold fail",
-  missing: "missing",
-  stale: "stale",
-  conflict: "conflict",
-};
-
-function toApiError(e: unknown): ApiError {
-  return e instanceof ApiError ? e : new ApiError(0, "UNKNOWN", String(e));
+/** Authority left on a decision, in milliseconds (the server's own window, read against this clock). */
+function authorityLeft(dv: DecisionView): number {
+  const until = dv.authority?.expires_at ?? dv.decision.authority_window?.expires_at;
+  return until ? new Date(until).getTime() - Date.now() : 0;
 }
 
 /* Screen 03 — Live Gate (Document 05 §13-27): intent | evidence | gate. The hero of the product. */
@@ -58,11 +53,10 @@ function LiveGate() {
   const publish = useCallback(
     async (decisionId: string) => {
       setAuth({ kind: "publishing" });
-      setStage(`Publishing authorization to ${chain.isMonad ? "Monad" : "the local EVM"}…`);
+      setStage(`Publishing the authorization to ${chain.where}…`);
       try {
         const a = await api.authorize(decisionId);
         setAuth({ kind: "active", auth: a });
-        update({ authorizationId: a.authorization_id });
       } catch (e) {
         const err = toApiError(e);
         setAuth({ kind: "error", message: err.message, code: err.code });
@@ -70,25 +64,22 @@ function LiveGate() {
         setStage(null);
       }
     },
-    [chain.isMonad, update],
+    [chain.where],
   );
 
   const applyDecision = useCallback(
     (dv: DecisionView) => {
       setView(dv);
-      update({
-        contractId,
-        decisionId: dv.decision.decision_id,
-        decisionState: dv.decision.state,
-        receiptId: dv.receipts.at(-1)?.receipt_id,
-        authorizationId: dv.authorization?.authorization_id,
-      });
+      update({ contractId, decisionId: dv.decision.decision_id, decisionState: dv.decision.state, receiptId: dv.receipts.at(-1)?.receipt_id });
       if (dv.decision.state !== "AUTHORIZE") {
         setAuth({ kind: "idle" });
       } else if (dv.authorization && (dv.authorization.status === "ACTIVE" || dv.authorization.status === "CONSUMED")) {
         setAuth({ kind: "active", auth: dv.authorization });
-      } else if (!dv.executions.some((e) => e.status === "EXECUTED")) {
+      } else if (!dv.executions.some((e) => e.status === "EXECUTED") && authorityLeft(dv) > 1000) {
+        // Publish only while authority remains: opening an old page must never write anything.
         void publish(dv.decision.decision_id);
+      } else {
+        setAuth({ kind: "idle" });
       }
     },
     [contractId, publish, update],
@@ -121,7 +112,7 @@ function LiveGate() {
       setBusy(true);
       setError(null);
       setActive(c);
-      setStage(`Test condition "${CONDITION_LABEL[c]}": acquiring fresh evidence and checking the Evidence Contract…`);
+      setStage(`Test condition “${conditionWord(c)}”: acquiring fresh evidence and checking the Evidence Contract…`);
       try {
         const r = await api.testCondition(contractId, c);
         setEvidence(r.evidence);
@@ -144,7 +135,7 @@ function LiveGate() {
     (async () => {
       const c = await api.contract(contractId);
       setContract(c);
-      update({ contractId, intentId: c.intent_id });
+      update({ contractId });
       const last = c.decisions.at(-1);
       if (last) {
         const dv = await api.decision(last.decision_id);
@@ -160,6 +151,7 @@ function LiveGate() {
         setStage(null);
         setBusy(false);
         applyDecision(dv);
+        router.replace(`/gate/${contractId}`); // a reload must not acquire again
       } else {
         const ev = await api.evidence(contractId);
         if (ev.evidence_set_id) setEvidence(ev);
@@ -169,21 +161,29 @@ function LiveGate() {
       setBusy(false);
       setStage(null);
     });
-  }, [applyDecision, contractId, search, update]);
+  }, [applyDecision, contractId, router, search, update]);
 
-  const rows = useMemo(() => (contract ? buildRows(contract.contract, evidence, view?.decision ?? null) : []), [contract, evidence, view]);
-  const animateKey = view?.decision.decision_id ?? "pending";
+  const executed = Boolean(view?.executions.some((e) => e.status === "EXECUTED"));
+  const deadline = view?.decision.state === "AUTHORIZE" && !executed ? (auth.kind === "active" ? auth.auth.expires_at : view.authority?.expires_at) : null;
+  const expired = useDeadlinePassed(deadline);
+  // Once authority has expired, no evidence row explains the gate any more: the connectors go quiet.
+  const rows = useMemo(() => {
+    const built = contract ? buildRows(contract.contract, evidence, view?.decision ?? null) : [];
+    return expired ? built.map((r) => ({ ...r, causal: false })) : built;
+  }, [contract, evidence, view, expired]);
+  const animateKey = `${view?.decision.decision_id ?? "pending"}-${expired}`;
 
   if (!contract) {
-    return (
-      <div className="mx-auto max-w-[1600px] px-6 py-10">
-        {error ? <ErrorNote error={error} /> : <p className="text-muted">Loading the live gate…</p>}
-      </div>
-    );
+    if (error) return <LoadError error={error} what="Evidence Contract" id={contractId} />;
+    return <p className="mx-auto max-w-[1600px] px-6 py-10 text-muted">Loading the live gate…</p>;
   }
 
+  const action = contract.contract.action;
   return (
     <div className="mx-auto max-w-[1600px] px-6 pb-6 pt-5">
+      <h1 className="sr-only">
+        Live gate: {actionVerb(action.type)} {action.asset} up to {formatAmount(action.max_amount.value, action.max_amount.currency)}
+      </h1>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[264px_minmax(0,1fr)_72px_minmax(380px,430px)] lg:gap-0">
         <div className="lg:pr-8">
           <IntentColumn contract={contract} decision={view} />
@@ -210,7 +210,7 @@ function LiveGate() {
               <>
                 <span>
                   {evidence.origin === "INJECTION" && evidence.injection
-                    ? `Test condition “${evidence.injection.condition === "remove" ? "missing" : evidence.injection.condition}” applied to ${
+                    ? `Test condition “${conditionWord(evidence.injection.condition)}” applied to ${
                         contract.contract.requirements.find((r) => r.id === evidence.injection?.requirement_id)?.label ?? evidence.injection.requirement_id
                       }`
                     : evidence.origin === "INJECTION"
@@ -239,6 +239,7 @@ function LiveGate() {
           view={view}
           rows={rows}
           authPhase={auth}
+          expired={expired}
           chainMode={system?.chain?.mode}
           busy={busy}
           stage={stage}

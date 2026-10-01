@@ -10,10 +10,6 @@ export type RequirementStatus = "PASS" | "FAIL" | "UNKNOWN";
 export type SourceMode = "LIVE" | "RECORDED" | "SIMULATED" | "INJECTED";
 export type Condition = "valid" | "threshold" | "missing" | "stale" | "conflict";
 
-export interface ApiErrorBody {
-  error: { code: string; message: string; detail: Record<string, unknown> };
-}
-
 export interface Money {
   value: Num;
   currency: string;
@@ -83,6 +79,8 @@ export interface ContractSummary {
   evidence_budget: string;
   intent_preserved: boolean;
   mandatory_requirements: number;
+  minimum_required_evidence?: number;
+  conflict_policy?: string | null;
   unparsed: string[];
   warnings?: string[];
   compiler?: string;
@@ -416,7 +414,16 @@ export interface ReceiptView {
   receipt_hash: string;
   commitment: { status: string; tx_hash: string | null; error: string | null; transaction: ChainTx | null };
   audit_chain: { step: string; value: string | null; status?: string; committed_tx?: string | null }[];
-  timeline: { step: string; label: string; at: string | null; state?: string; tx_hash?: string | null; receipt_hash?: string }[];
+  timeline: {
+    step: "intent" | "contract" | "evidence" | "decision" | "blocked" | "authorized" | "committed" | "executed" | "failed" | "expired" | "receipt";
+    label: string;
+    at: string | null;
+    state?: DecisionState;
+    tx_hash?: string | null;
+    receipt_hash?: string;
+  }[];
+  /** Engine reason code per requirement (null when it passed). */
+  evidence_reasons: Record<string, string | null>;
 }
 
 export interface ReplayCheck {

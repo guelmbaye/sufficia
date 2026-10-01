@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  claimUnit,
   formatAge,
   formatAmount,
   formatClaimValue,
@@ -8,8 +9,12 @@ import {
   formatNumber,
   formatTime,
   formatUsd,
+  maxAgePhrase,
+  modeLabel,
   plainRequirement,
+  providerLabel,
   shortHash,
+  withProviderLabels,
 } from "@/lib/format";
 
 describe("exact number formatting (no float round trip)", () => {
@@ -41,7 +46,10 @@ describe("time and hashes", () => {
   it("formats ages and countdowns", () => {
     expect(formatAge("0.021")).toBe("0.02 s");
     expect(formatAge("4.2")).toBe("4.2 s");
-    expect(formatAge("120.008")).toBe("2 min");
+    expect(formatAge("120.008")).toBe("120 s"); // same unit as the engine's reasons
+    expect(formatAge("900")).toBe("15 min");
+    expect(maxAgePhrase([30, 30])).toBe("30 seconds");
+    expect(maxAgePhrase([10, 30])).toBe("10 to 30 seconds");
     expect(formatCountdown(12_400)).toBe("00:13");
     expect(formatCountdown(-5)).toBe("00:00");
   });
@@ -61,5 +69,18 @@ describe("plain requirement wording", () => {
     expect(plainRequirement("< $0.5")).toBe("less than $0.5");
     expect(plainRequirement("EXISTS")).toBe("must exist");
     expect(plainRequirement("NOT_EXISTS")).toBe("must not exist");
+  });
+});
+
+describe("one vocabulary for sources", () => {
+  it("labels providers and modes once, and rewrites provider ids inside engine reasons", () => {
+    expect(providerLabel("demo-lab")).toBe("Test condition");
+    expect(modeLabel("INJECTED")).toBe("Test condition");
+    expect(modeLabel("SIMULATED")).toBe("Simulated");
+    expect(withProviderLabels("$718,000 (x402-reference) vs $89,750 (demo-lab), 87.5% apart (10%)")).toBe(
+      "$718,000 (x402 reference API) vs $89,750 (Test condition), 87.5% apart (10%)",
+    );
+    expect(claimUnit("available_liquidity")).toBe("USD");
+    expect(claimUnit("sanctions_flag")).toBeNull();
   });
 });

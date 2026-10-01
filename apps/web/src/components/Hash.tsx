@@ -8,17 +8,15 @@ import { shortHash } from "@/lib/format";
 export function Hash({
   value,
   href,
-  full = false,
   className = "",
 }: {
   value: string | null | undefined;
   href?: string | null;
-  full?: boolean;
   className?: string;
 }) {
   const [copied, setCopied] = useState(false);
   if (!value) return <span className="text-faint">—</span>;
-  const text = full ? value : shortHash(value, 8, 6);
+  const text = shortHash(value, 8, 6);
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(value);

@@ -51,13 +51,6 @@ export function StateIcon({ name, size = 20, className = "" }: { name: IconName;
           <path d="M8 12h8" />
         </svg>
       );
-    case "invalid":
-      return (
-        <svg {...common}>
-          <rect x="3" y="3" width="18" height="18" rx="2" />
-          <path d="M9 9l6 6M15 9l-6 6" />
-        </svg>
-      );
     default:
       return (
         <svg {...common}>

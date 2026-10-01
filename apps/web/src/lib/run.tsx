@@ -1,35 +1,39 @@
 "use client";
 
-/* The current run (one intent, one frozen contract, its latest decision and receipt), shared by the
-   five screens and remembered across reloads so the stepper can always move forward and back. */
+/* The current run (one frozen contract, its latest decision and receipt), shared by the five
+   screens and remembered across reloads so the stepper can always move forward and back. */
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import type { DecisionState } from "./types";
 
 export interface RunState {
-  intentId?: string;
   contractId?: string;
   decisionId?: string;
   decisionState?: DecisionState;
-  authorizationId?: string;
   receiptId?: string;
-  intentText?: string;
 }
 
 interface RunContextValue {
   run: RunState;
   update: (patch: Partial<RunState>) => void;
   reset: () => void;
-  ready: boolean;
 }
 
-const KEY = "sufficia.run.v1";
+const KEY = "sufficia.run.v2";
 const RunContext = createContext<RunContextValue | null>(null);
+
+/** A decision and a receipt belong to one contract: opening another contract forgets them, so the
+    stepper and the shortcuts never point at a different run's records. */
+export function mergeRun(prev: RunState, patch: Partial<RunState>): RunState {
+  const base = patch.contractId && patch.contractId !== prev.contractId ? { contractId: patch.contractId } : prev;
+  const next: RunState = { ...base, ...patch };
+  if (patch.decisionId && patch.decisionId !== prev.decisionId && !("receiptId" in patch)) delete next.receiptId;
+  return next;
+}
 
 export function RunProvider({ children }: { children: ReactNode }) {
   const [run, setRun] = useState<RunState>({});
-  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     try {
@@ -39,7 +43,6 @@ export function RunProvider({ children }: { children: ReactNode }) {
     } catch {
       /* storage unavailable: the run lives in memory only */
     }
-    setReady(true);
   }, []);
 
   const persist = useCallback((next: RunState) => {
@@ -53,7 +56,7 @@ export function RunProvider({ children }: { children: ReactNode }) {
   const update = useCallback(
     (patch: Partial<RunState>) =>
       setRun((prev) => {
-        const next = { ...prev, ...patch };
+        const next = mergeRun(prev, patch);
         persist(next);
         return next;
       }),
@@ -65,7 +68,7 @@ export function RunProvider({ children }: { children: ReactNode }) {
     persist({});
   }, [persist]);
 
-  const value = useMemo(() => ({ run, update, reset, ready }), [run, update, reset, ready]);
+  const value = useMemo(() => ({ run, update, reset }), [run, update, reset]);
   return <RunContext.Provider value={value}>{children}</RunContext.Provider>;
 }
 

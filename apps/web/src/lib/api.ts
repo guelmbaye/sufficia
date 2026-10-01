@@ -33,6 +33,11 @@ export class ApiError extends Error {
   }
 }
 
+/** Any thrown value as an ApiError, so every screen explains failures the same way. */
+export function toApiError(e: unknown): ApiError {
+  return e instanceof ApiError ? e : new ApiError(0, "UNKNOWN", String(e));
+}
+
 type Fetcher = typeof fetch;
 
 export function createClient(base = "/api/v1", fetcher: Fetcher = (...a) => fetch(...a)) {
@@ -77,10 +82,8 @@ export function createClient(base = "/api/v1", fetcher: Fetcher = (...a) => fetc
     decide: (contractId: string) => call<DecisionView>("POST", `/contracts/${enc(contractId)}/decide`),
     decision: (decisionId: string) => call<DecisionView>("GET", `/decisions/${enc(decisionId)}`),
     authorize: (decisionId: string) => call<AuthorizationView>("POST", `/decisions/${enc(decisionId)}/authorize`),
-    executeDecision: (decisionId: string) => call<ExecutionResult>("POST", `/decisions/${enc(decisionId)}/execute`),
     authorization: (id: string) => call<AuthorizationView>("GET", `/authorizations/${enc(id)}`),
     executeAuthorization: (id: string) => call<ExecutionResult>("POST", `/authorizations/${enc(id)}/execute`),
-    decisionReceipt: (decisionId: string) => call<ReceiptView>("GET", `/decisions/${enc(decisionId)}/receipt`),
     receipt: (id: string) => call<ReceiptView>("GET", `/receipts/${enc(id)}`),
     replay: (id: string) => call<ReplayResult>("POST", `/receipts/${enc(id)}/replay`),
     tamperTest: (id: string) => call<TamperResult>("POST", `/receipts/${enc(id)}/tamper-test`),
@@ -94,5 +97,4 @@ export function createClient(base = "/api/v1", fetcher: Fetcher = (...a) => fetc
   };
 }
 
-export type SufficiaClient = ReturnType<typeof createClient>;
 export const api = createClient();

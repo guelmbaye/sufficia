@@ -5,11 +5,9 @@ import { useEffect, useState } from "react";
 
 import { Hash } from "@/components/Hash";
 import { api } from "@/lib/api";
-import { claimLabel, formatClaimValue } from "@/lib/format";
+import { claimLabel, claimUnit, formatClaimValue } from "@/lib/format";
 import { DECISION_META, TONE_CLASSES } from "@/lib/states";
 import type { DecisionView } from "@/lib/types";
-
-const USD_CLAIMS = new Set(["smart_money_inflow_24h", "available_liquidity", "asset_price"]);
 
 /** Compare runs (Document 05 §97-98): same intent, amount, asset and wallet; only evidence differs. */
 export function CompareRuns({ contractId }: { contractId: string }) {
@@ -55,7 +53,7 @@ export function CompareRuns({ contractId }: { contractId: string }) {
               const vb = rb?.observed_values.join(", ");
               const changed = va !== vb;
               const fmt = (v: string | undefined, claim: string) =>
-                v ? v.split(", ").map((x) => formatClaimValue(x, USD_CLAIMS.has(claim) ? "USD" : null, claim)).join(", ") : "none";
+                v ? v.split(", ").map((x) => formatClaimValue(x, claimUnit(claim), claim)).join(", ") : "none";
               return (
                 <tr key={id} className={`border-b border-rule ${changed ? "bg-hold-tint/60" : ""}`}>
                   <td className="py-2.5 pr-4">{claimLabel(ra?.claim ?? id)}</td>
@@ -82,7 +80,7 @@ export function CompareRuns({ contractId }: { contractId: string }) {
                     {ex ? <Hash value={ex.tx_hash} /> : <span className="text-muted">No transaction</span>}
                     {rec ? (
                       <Link href={`/receipt/${rec.receipt_id}`} className="ml-2 text-xs text-signal underline underline-offset-4">
-                        receipt
+                        Open receipt
                       </Link>
                     ) : null}
                   </td>

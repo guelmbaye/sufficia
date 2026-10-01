@@ -4,11 +4,11 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 
-import { ErrorNote } from "@/components/ErrorNote";
 import { Hash } from "@/components/Hash";
+import { LoadError } from "@/components/LoadError";
 import { StateIcon } from "@/components/StateIcon";
 import { api } from "@/lib/api";
-import { formatDateTime, plainRequirement } from "@/lib/format";
+import { actionVerb, formatDateTime, formatNumber, plainRequirement } from "@/lib/format";
 import { useLoad } from "@/lib/hooks";
 import { useRun } from "@/lib/run";
 
@@ -19,22 +19,17 @@ export default function ContractPage() {
   const { data, error } = useLoad(contractId, () => api.contract(contractId));
 
   useEffect(() => {
-    if (data) update({ contractId: data.contract.contract_id, intentId: data.intent_id });
+    if (data) update({ contractId: data.contract.contract_id });
   }, [data, update]);
 
-  if (error) {
-    return (
-      <div className="mx-auto max-w-[1100px] px-6 py-14">
-        <ErrorNote error={error} />
-      </div>
-    );
-  }
+  if (error) return <LoadError error={error} what="Evidence Contract" id={contractId} />;
   if (!data) return <p className="mx-auto max-w-[1100px] px-6 py-14 text-muted">Loading the Evidence Contract…</p>;
 
   const { summary, contract } = data;
   const action = contract.action;
-  const verb = { BUY: "Buy", SELL: "Sell", TRANSFER: "Transfer" }[action.type] ?? action.type;
   const preservedOk = summary.intent_preserved;
+  const tolerances = [...new Set(contract.requirements.map((r) => `${formatNumber((Number(r.conflict_tolerance) * 100).toFixed(4))}%`))];
+  const decided = data.decisions.length > 0;
 
   return (
     <div className="mx-auto max-w-[1100px] px-6 pb-16 pt-14">
@@ -43,11 +38,11 @@ export default function ContractPage() {
         What must be true before money can move?
       </h1>
 
-      <div className="mt-10 grid grid-cols-[1fr_1.6fr] gap-px overflow-hidden rounded-sm border border-rule bg-rule">
+      <div className="mt-10 grid grid-cols-1 gap-px md:grid-cols-[1fr_1.6fr] overflow-hidden rounded-sm border border-rule bg-rule">
         <section className="bg-paper p-6">
           <h2 className="text-sm text-muted">Action</h2>
           <p className="mt-2 font-expanded text-3xl font-extrabold">
-            {verb} {action.asset}
+            {actionVerb(action.type)} {action.asset}
           </p>
           <p className="mt-1 font-wide text-xl tabular">Maximum {summary.maximum}</p>
 
@@ -66,23 +61,20 @@ export default function ContractPage() {
               <li key={r.id} className="grid grid-cols-[1fr_auto] items-baseline gap-4 py-4">
                 <div>
                   <p className="text-lg font-semibold">{r.label}</p>
-                  {r.origin === "IMPLICIT" ? (
-                    <p className="text-sm text-muted">Added automatically: a price is needed to bound slippage. It can only restrict.</p>
-                  ) : null}
+                  {r.note ? <p className="text-sm text-muted">{r.note} It can only restrict the action.</p> : null}
                 </div>
                 <p className="font-wide text-2xl font-bold tabular">{plainRequirement(r.expression)}</p>
               </li>
             ))}
           </ol>
           <p className="mt-3 text-sm text-muted">
-            Every requirement is mandatory. Each observation must be at most {summary.requirements[0]?.max_age_seconds ?? 30} seconds old,
-            and two sources more than 10% apart escalate to a human instead of being averaged.
+            Two sources more than {tolerances.join(" or ")} apart escalate to a human instead of being averaged.
           </p>
         </section>
       </div>
 
       <section aria-label="Contract confirmation" className="mt-8">
-        <ul className="grid grid-cols-4 gap-px overflow-hidden rounded-sm border border-rule bg-rule text-sm">
+        <ul className="grid grid-cols-1 gap-px overflow-hidden rounded-sm border border-rule bg-rule text-sm sm:grid-cols-3">
           <li className="flex items-start gap-3 bg-paper p-4">
             <StateIcon name={preservedOk ? "allow" : "conflict"} className={preservedOk ? "text-allow" : "text-hold"} />
             <span>
@@ -100,10 +92,6 @@ export default function ContractPage() {
             </span>
           </li>
           <li className="bg-paper p-4">
-            <span className="block text-muted">Max protected amount</span>
-            <span className="font-wide text-xl font-bold tabular">{summary.maximum}</span>
-          </li>
-          <li className="bg-paper p-4">
             <span className="block text-muted">Max evidence spend</span>
             <span className="font-wide text-xl font-bold tabular">{summary.evidence_budget}</span>
           </li>
@@ -111,14 +99,21 @@ export default function ContractPage() {
         {summary.unparsed.length ? (
           <p className="mt-3 text-sm text-hold">Not understood, so not enforced: {summary.unparsed.join("; ")}.</p>
         ) : null}
+        {summary.warnings?.length ? (
+          <ul className="mt-3 space-y-1 text-sm text-hold">
+            {summary.warnings.map((w) => (
+              <li key={w}>{w}</li>
+            ))}
+          </ul>
+        ) : null}
       </section>
 
       <div className="mt-10 flex flex-wrap items-center gap-6">
         <Link
-          href={`/gate/${contract.contract_id}?acquire=1`}
+          href={decided ? `/gate/${contract.contract_id}` : `/gate/${contract.contract_id}?acquire=1`}
           className="rounded-sm bg-signal px-6 py-3 text-base font-semibold text-paper hover:bg-[#1a44c4]"
         >
-          Acquire evidence
+          {decided ? "Open the live gate" : "Acquire evidence"}
         </Link>
         <span className="text-sm text-muted">
           Contract hash <Hash value={data.contract_hash} />

@@ -1,14 +1,7 @@
 "use client";
 
+import { CONDITIONS } from "@/lib/states";
 import type { Condition } from "@/lib/types";
-
-const CONDITIONS: { id: Condition; label: string; hint: string }[] = [
-  { id: "valid", label: "Valid", hint: "Every requirement satisfied by fresh evidence. Expected: authorized." },
-  { id: "threshold", label: "Threshold fail", hint: "Liquidity observed at $92,440 against > $500,000. Expected: denied." },
-  { id: "missing", label: "Missing", hint: "Price evidence removed. Expected: agent abstains." },
-  { id: "stale", label: "Stale", hint: "Price observation 120 s old against a 30 s maximum. Expected: evidence expired." },
-  { id: "conflict", label: "Conflict", hint: "A second liquidity source disagrees by 87%. Expected: human review." },
-];
 
 /* Judge control (Document 05 §24-26): each condition changes exactly one piece of evidence on the
    same contract. Labelled as test conditions, never as "demo mode". */

@@ -8,7 +8,7 @@ const respond = (status: number, body: unknown) =>
 describe("API client", () => {
   it("keeps the machine code of API errors", async () => {
     const api = createClient("/api/v1", respond(403, { error: { code: "EVIDENCE_AUTHORIZATION_REQUIRED", message: "Decision is DENY", detail: { decision_state: "DENY" } } }));
-    await expect(api.executeDecision("dec_1")).rejects.toMatchObject({ status: 403, code: "EVIDENCE_AUTHORIZATION_REQUIRED", detail: { decision_state: "DENY" } });
+    await expect(api.authorize("dec_1")).rejects.toMatchObject({ status: 403, code: "EVIDENCE_AUTHORIZATION_REQUIRED", detail: { decision_state: "DENY" } });
   });
   it("reports an unreachable API explicitly", async () => {
     const api = createClient("/api/v1", (async () => {

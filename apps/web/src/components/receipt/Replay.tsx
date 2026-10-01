@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { Hash } from "@/components/Hash";
 import { StateIcon } from "@/components/StateIcon";
-import { api, ApiError } from "@/lib/api";
+import { api, toApiError } from "@/lib/api";
 import { claimLabel, formatNumber } from "@/lib/format";
 import { DECISION_META, TONE_CLASSES } from "@/lib/states";
 import type { ReplayResult, TamperResult } from "@/lib/types";
@@ -55,7 +55,7 @@ export function ReplayPanel({ receiptId }: { receiptId: string }) {
     try {
       setResult(await api.replay(receiptId));
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : String(e));
+      setError(toApiError(e).message);
     } finally {
       setBusy(false);
     }
@@ -65,6 +65,8 @@ export function ReplayPanel({ receiptId }: { receiptId: string }) {
   const byName = new Map(result?.checks.map((c) => [c.check, c]) ?? []);
   const headline = HEADLINE_CHECKS.map((k) => byName.get(k)).filter(Boolean);
   const passed = result?.checks.filter((c) => c.ok === true).length ?? 0;
+  const sameReason =
+    result !== null && result.original.reason === result.replay.reason && result.original.reason_codes.join() === result.replay.reason_codes.join();
 
   return (
     <section aria-label="Decision replay" data-testid="replay">
@@ -91,19 +93,31 @@ export function ReplayPanel({ receiptId }: { receiptId: string }) {
             {ok ? "Deterministic replay verified" : "Replay mismatch"}
           </p>
 
-          <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-sm border border-rule bg-rule">
-            {(["original", "replay"] as const).map((side) => {
-              const s = result[side];
-              const meta = DECISION_META[s.state];
-              return (
-                <div key={side} className="bg-paper p-4">
-                  <p className="text-xs text-muted">{side === "original" ? "Original decision" : "Replay"}</p>
-                  <p className={`mt-1 font-expanded text-xl font-extrabold ${TONE_CLASSES[meta.tone].text}`}>{s.state}</p>
-                  <p className="mt-1 text-sm text-ink-2">{s.reason}</p>
-                  <p className="mt-1 font-mono text-2xs text-muted">{s.reason_codes.join(", ")}</p>
-                </div>
-              );
-            })}
+          <div className="mt-4 overflow-hidden rounded-sm border border-rule bg-paper">
+            <div className="grid grid-cols-2 gap-px bg-rule">
+              {(["original", "replay"] as const).map((side) => {
+                const s = result[side];
+                return (
+                  <div key={side} className="bg-paper px-4 pt-3 pb-2">
+                    <p className="text-xs text-muted">{side === "original" ? "Original decision" : "Replay"}</p>
+                    <p className={`mt-1 font-expanded text-xl font-extrabold ${TONE_CLASSES[DECISION_META[s.state].tone].text}`}>{s.state}</p>
+                    {sameReason ? null : (
+                      <>
+                        <p className="mt-1 text-sm text-ink-2">{s.reason}</p>
+                        <p className="mt-1 font-mono text-2xs text-muted">{s.reason_codes.join(", ")}</p>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {/* identical reasons are shown once */}
+            {sameReason ? (
+              <div className="border-t border-rule px-4 py-3">
+                <p className="text-sm text-ink-2">{result.original.reason}</p>
+                <p className="mt-1 font-mono text-2xs text-muted">{result.original.reason_codes.join(", ")}</p>
+              </div>
+            ) : null}
           </div>
 
           <ul className="mt-4 grid grid-cols-2 gap-x-8 gap-y-1 text-sm md:grid-cols-3">
@@ -156,7 +170,7 @@ export function TamperTest({ receiptId }: { receiptId: string }) {
     try {
       setT(await api.tamperTest(receiptId));
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : String(e));
+      setError(toApiError(e).message);
     }
   };
   return (
@@ -177,17 +191,19 @@ export function TamperTest({ receiptId }: { receiptId: string }) {
               <dd>
                 <Hash value={t.tampered_evidence_root} />
               </dd>
-              <dd className="font-bold text-deny">{t.evidence_root === "MISMATCH" ? "Mismatch" : "Match"}</dd>
+              <dd className={`font-bold ${t.evidence_root === "MISMATCH" ? "text-deny" : "text-allow"}`}>{t.evidence_root === "MISMATCH" ? "Mismatch" : "Match"}</dd>
             </div>
             <div className="grid grid-cols-[10rem_1fr_auto] items-center gap-3 py-1.5">
               <dt className="text-muted">Receipt integrity</dt>
               <dd>
                 <Hash value={t.tampered_receipt_hash} />
               </dd>
-              <dd className="font-bold text-deny">{t.receipt_integrity === "INVALID" ? "Invalid" : "Valid"}</dd>
+              <dd className={`font-bold ${t.receipt_integrity === "INVALID" ? "text-deny" : "text-allow"}`}>{t.receipt_integrity === "INVALID" ? "Invalid" : "Valid"}</dd>
             </div>
           </dl>
-          <p className="mt-2 text-xs text-muted">Nothing stored was modified; replaying the real receipt still matches.</p>
+          <p className="mt-2 text-xs text-muted">
+            {t.stored_data_modified ? "Stored data was modified." : "The change was computed in memory: nothing stored was modified."}
+          </p>
         </div>
       ) : null}
     </section>

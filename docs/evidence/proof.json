@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-30T22:07:26.235177+00:00",
-  "commit": "364154322be75056eed7a55374ac8c9dfc6cd274",
+  "generated_at": "2026-10-01T17:35:06.141665+00:00",
+  "commit": "a445e5face24d16aca745fbd15f0f6f1cbd9ce5f",
   "version": "1.0.0",
   "benchmark": {
     "total_cases": "50",
@@ -30,9 +30,9 @@
   "proof": {
     "chain_mode": "LOCAL_EVM",
     "evidence_gate": "0x6E05f58eEddA592f34DD9105b1827f252c509De0",
-    "execution_tx": "0xb98827681f0cf432fe5537bd430a7a9f1c89b51c25c949a04fcd068c0b7fd40d",
-    "authorization_tx": "0x7ae66207233def2725ad6d89d2d28e6f4eb72fb5657a6d6ee9b23547f87de64b",
-    "receipt_hash": "0xe728647c190ee19306dd7e3d04cde008446fc59f64f8eec9b8cd3356fb892bcc",
+    "execution_tx": "0xdfbe4328e887e9a9c33376dfc1d49f7b650d2ec2d1e5fed643d0b328a21c50eb",
+    "authorization_tx": "0x5493526ebb90b07feb92daefecf10c5fcb23aef3a1688e80506398bb88865bb0",
+    "receipt_hash": "0x28d67d9d17fb31d14bc472951bc9c9b6ea57059afd7b5475f86a946cac627ff7",
     "replay": "MATCH",
     "audit_chain_valid": true,
     "unauthorized_executions": 0

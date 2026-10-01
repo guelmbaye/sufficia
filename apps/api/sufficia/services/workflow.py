@@ -809,12 +809,12 @@ class Sufficia:
         chain_ts = gw.block_timestamp()
         if unix_seconds_floor(auth.expires_at) <= chain_ts:
             self._audit("AUTHORIZATION_EXPIRED", decision_id, {"expires_at": auth.expires_at, "chain_time": chain_ts})
-            self._expired_receipt(decision_id, None)
+            receipt = self._expired_receipt(decision_id, None)
             raise ApiError(
                 409,
                 "AUTHORIZATION_EXPIRED",
                 "the authority window of this decision has closed; refresh the evidence and decide again",
-                {"expires_at": auth.expires_at, "chain_time": chain_ts},
+                {"expires_at": auth.expires_at, "chain_time": chain_ts, "receipt_id": receipt},
             )
 
         now = self.rt.now()
@@ -1144,9 +1144,12 @@ class Sufficia:
         with self.rt.db.session() as s:
             row = s.get(ExecutionRow, exec_id)
             view = self._exec_view(row)
-            txs = s.execute(select(ChainTransactionRow).where(ChainTransactionRow.operation_id == exec_id)).scalars().all()
-            view["transactions"] = self._tx_views(s, list(txs))
             rec = s.execute(select(ReceiptRow).where(ReceiptRow.execution_id == exec_id)).scalar_one_or_none()
+            operations = [exec_id] + ([rec.id] if rec else [])  # protected execution + receipt commitment
+            txs = s.execute(
+                select(ChainTransactionRow).where(ChainTransactionRow.operation_id.in_(operations)).order_by(ChainTransactionRow.id)
+            ).scalars().all()
+            view["transactions"] = self._tx_views(s, list(txs))
             view["receipt_id"] = rec.id if rec else None
             view["idempotent"] = idempotent
             view["authorization"] = self._auth_view(s.get(AuthorizationRow, row.authorization_id))
@@ -1288,12 +1291,19 @@ class Sufficia:
                 commit_tx = self._chain_tx_view(t) if t else None
             audit_chain = self._audit_chain(s, body, row)
             timeline = self._receipt_timeline(s, body, row)
+            # Why each requirement was (not) established, from the stored verification results. Display
+            # data next to the receipt, not inside its hashed body.
+            reasons = {
+                v.requirement_id: v.reason_code
+                for v in s.execute(select(VerificationResultRow).where(VerificationResultRow.decision_id == body.decision_id)).scalars()
+            }
         return {
             "receipt": body,
             "receipt_hash": row.receipt_hash,
             "commitment": {"status": row.commitment_status, "tx_hash": row.commitment_tx_hash, "error": row.commitment_error, "transaction": commit_tx},
             "audit_chain": audit_chain,
             "timeline": timeline,
+            "evidence_reasons": reasons,
         }
 
     def _receipt_timeline(self, s: Session, body: EvidenceReceipt, row: ReceiptRow) -> list[dict[str, Any]]:
@@ -1305,16 +1315,14 @@ class Sufficia:
         steps: list[dict[str, Any]] = [
             {"step": "intent", "label": "Human intent", "at": irow.created_at if irow else None},
             {"step": "contract", "label": "Evidence Contract frozen", "at": crow.frozen_at if crow else None},
-            {"step": "evidence", "label": "Evidence acquired" if set_row is None or set_row.origin == "ACQUISITION"
-             else f"Evidence set changed ({set_row.label})", "at": set_row.created_at if set_row else None},
-            {"step": "decision", "label": "Requirements verified", "at": body.evaluated_at,
-             "state": body.decision_state.value},
+            {"step": "evidence", "label": self._evidence_step_label(set_row), "at": set_row.created_at if set_row else None},
+            {"step": "decision", "label": "Decision", "at": body.evaluated_at, "state": body.decision_state.value},
         ]
         arow = s.execute(select(AuthorizationRow).where(AuthorizationRow.decision_id == body.decision_id)).scalar_one_or_none()
         if body.decision_state != DecisionState.AUTHORIZE:
             steps.append({"step": "blocked", "label": "Execution blocked: no authorization issued", "at": row.created_at})
         elif arow is not None:
-            steps.append({"step": "authorized", "label": "Execution authorized", "at": arow.created_at})
+            steps.append({"step": "authorized", "label": "Authorization issued", "at": arow.created_at})
             tx = s.execute(
                 select(ChainTransactionRow).where(
                     ChainTransactionRow.related_id == arow.id, ChainTransactionRow.purpose == TxPurpose.AUTHORIZATION.value
@@ -1324,12 +1332,23 @@ class Sufficia:
                 steps.append({"step": "committed", "label": "Authorization committed onchain", "at": tx.confirmed_at or tx.created_at,
                               "tx_hash": tx.tx_hash})
         if body.execution.get("tx_hash"):
-            steps.append({"step": "executed", "label": "Protected action executed" if body.kind == "EXECUTED" else "Execution failed",
-                          "at": body.execution.get("confirmed_at"), "tx_hash": body.execution.get("tx_hash")})
+            executed = body.kind == "EXECUTED"
+            steps.append({"step": "executed" if executed else "failed",
+                          "label": "Protected action executed" if executed else "Execution failed",
+                          "at": body.execution.get("confirmed_at") or row.created_at, "tx_hash": body.execution.get("tx_hash")})
         elif body.kind == "EXPIRED":
             steps.append({"step": "expired", "label": "Authorization expired before execution", "at": row.created_at})
         steps.append({"step": "receipt", "label": "Receipt generated", "at": row.created_at, "receipt_hash": row.receipt_hash})
         return steps
+
+    @staticmethod
+    def _evidence_step_label(set_row: Optional[EvidenceSetRow]) -> str:
+        if set_row is None or set_row.origin == "ACQUISITION":
+            return "Evidence acquired"
+        condition = (loads(set_row.acquisition) or {}).get("condition")
+        words = {"remove": "missing evidence", "stale": "stale evidence", "conflict": "conflicting second source",
+                 "threshold": "threshold fail", "valid": "valid evidence"}
+        return f"Evidence changed by a test condition ({words.get(condition, condition or 'unknown')})"
 
     def tamper_test(self, receipt_id: str) -> dict[str, Any]:
         """Document 05 §41: shows that changing ONE evidence value by the smallest unit breaks the evidence

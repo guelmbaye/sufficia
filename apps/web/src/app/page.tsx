@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ErrorNote } from "@/components/ErrorNote";
-import { api, ApiError } from "@/lib/api";
+import { api, type ApiError, toApiError } from "@/lib/api";
 import { GRAND_PRIZE_INTENT } from "@/lib/constants";
 import { plainRequirement } from "@/lib/format";
 import { useSystem } from "@/lib/hooks";
@@ -24,23 +24,29 @@ export default function MissionPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const chain = chainLabel(system?.chain?.mode);
+  const latest = useRef(0);
 
-  // Live understanding of the instruction, debounced; nothing is stored until "Compile".
+  // Live understanding of the instruction, debounced; nothing is stored until "Compile". Only the
+  // answer for the newest text is shown, whatever order the responses arrive in.
   useEffect(() => {
+    const ticket = ++latest.current;
     const t = window.setTimeout(() => {
       if (!text.trim()) {
         setPreview(null);
+        setPreviewError(null);
         return;
       }
       api
         .previewIntent(text)
         .then((p) => {
+          if (ticket !== latest.current) return;
           setPreview(p);
           setPreviewError(null);
         })
         .catch((e: unknown) => {
+          if (ticket !== latest.current) return;
           setPreview(null);
-          setPreviewError(e instanceof ApiError ? e : null);
+          setPreviewError(toApiError(e));
         });
     }, 350);
     return () => window.clearTimeout(t);
@@ -53,10 +59,10 @@ export default function MissionPage() {
       const intent = await api.createIntent(text);
       const contract = await api.compile(intent.intent.intent_id);
       reset();
-      update({ intentId: intent.intent.intent_id, contractId: contract.contract.contract_id, intentText: text });
+      update({ contractId: contract.contract.contract_id });
       router.push(`/contract/${contract.contract.contract_id}`);
     } catch (e) {
-      setError(e instanceof ApiError ? e : new ApiError(0, "UNKNOWN", String(e)));
+      setError(toApiError(e));
       setBusy(false);
     }
   };
@@ -90,8 +96,8 @@ export default function MissionPage() {
         </div>
         <div className="py-3 sm:px-6 sm:py-4">
           <dt className="text-sm text-muted">Network</dt>
-          <dd className="mt-1 font-wide text-2xl font-bold">{system ? (chain.isMonad ? chain.honest : "Local EVM") : "—"}</dd>
-          {system && !chain.isMonad ? <dd className="text-xs text-muted">Real EvidenceGate bytecode, not Monad</dd> : null}
+          <dd className="mt-1 font-wide text-2xl font-bold">{system ? chain.display : "—"}</dd>
+          {system?.chain?.mode === "LOCAL_EVM" ? <dd className="text-xs text-muted">Real EvidenceGate bytecode, not Monad</dd> : null}
         </div>
         <div className="py-3 sm:px-6 sm:py-4">
           <dt className="text-sm text-muted">Evidence budget</dt>
@@ -107,6 +113,11 @@ export default function MissionPage() {
             {summary.unparsed.length ? (
               <span className="mt-1 block text-hold">Not understood, so not enforced: {summary.unparsed.join("; ")}.</span>
             ) : null}
+            {summary.warnings?.map((w) => (
+              <span key={w} className="mt-1 block text-hold">
+                {w}
+              </span>
+            ))}
           </p>
         ) : previewError ? (
           <p className="text-hold">{previewError.message}</p>

@@ -55,12 +55,12 @@ curl -s -XPOST $B/receipts/$RID/replay | jq '{result, chain_verification}'   # M
 | POST | `/api/v1/decisions/{id}/authorize` | double guard (Document 04 §64) then `registerIntent` + `authorize` onchain. `403 EVIDENCE_AUTHORIZATION_REQUIRED` unless AUTHORIZE; `409 DECISION_INTEGRITY`, `409 ACTION_VERIFICATION_FAILED`, `403 AUTHORITY_EXPANSION`, `409 AUTHORIZATION_EXPIRED`, `502 CHAIN_TX_FAILED`, `504 CHAIN_TX_PENDING`. Idempotent. |
 | POST | `/api/v1/decisions/{id}/execute` | authorize (if needed) + execute. **403 for every non-AUTHORIZE decision.** |
 | GET | `/api/v1/authorizations/{id}` | stored state + live onchain state + transactions |
-| POST | `/api/v1/authorizations/{id}/execute` | reads onchain state first (exists, unconsumed, unexpired, executor, action hash) then `executeAuthorized`. `409 AUTHORIZATION_EXPIRED` (+ EXPIRED receipt), `409 ACTION_HASH_MISMATCH`, `409 AUTHORIZATION_ALREADY_CONSUMED`, `409 EXECUTION_REVERTED` (+ FAILED receipt). Idempotent per authorization. |
+| POST | `/api/v1/authorizations/{id}/execute` | reads onchain state first (exists, unconsumed, unexpired, executor, action hash) then `executeAuthorized`. The result lists the protected-execution and receipt-commitment transactions. `409 AUTHORIZATION_EXPIRED` (+ EXPIRED receipt, id in `detail.receipt_id`), `409 ACTION_HASH_MISMATCH`, `409 AUTHORIZATION_ALREADY_CONSUMED`, `409 EXECUTION_REVERTED` (+ FAILED receipt). Idempotent per authorization. |
 
 ### Receipts, replay, audit
 | Method | Path | Notes |
 |---|---|---|
-| GET | `/api/v1/receipts` · `/api/v1/receipts/{id}` · `/api/v1/decisions/{id}/receipt` | receipt body, `receipt_hash`, onchain `commitment`, `audit_chain`, and `timeline` (intent → contract → evidence → decision → blocked \| authorized → committed → executed \| expired → receipt, from stored timestamps and tx hashes) |
+| GET | `/api/v1/receipts` · `/api/v1/receipts/{id}` · `/api/v1/decisions/{id}/receipt` | receipt body, `receipt_hash`, onchain `commitment`, `audit_chain`, `timeline` (intent → contract → evidence → decision → blocked \| authorized → committed → executed \| failed \| expired → receipt, from stored timestamps and tx hashes) and `evidence_reasons` (engine reason code per requirement, e.g. `EVIDENCE_STALE`; display data outside the hashed body) |
 | POST | `/api/v1/receipts/{id}/replay` | `MATCH`/`MISMATCH` with every check (receipt integrity, decision replay incl. engine version and explanation, authority binding, onchain state); `original` / `replay` carry state, reason codes and the first reason |
 | POST | `/api/v1/receipts/{id}/tamper-test` | changes one numeric evidence value by its smallest unit **in memory only** and reports the recomputed `evidence_root` (`MISMATCH`) and receipt hash (`receipt_integrity: INVALID`); `stored_data_modified: false` |
 | GET | `/api/v1/audit` · `/api/v1/audit/verify` | hash-chained audit events and integrity check |

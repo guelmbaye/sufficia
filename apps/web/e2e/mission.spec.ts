@@ -34,7 +34,7 @@ test("proof drawer opens with the keyboard and shows only verified numbers", asy
   await expect(drawer).toBeVisible();
   await expect(drawer).toContainText("Benchmark cases matched");
   await expect(drawer).toContainText("50 of 50");
-  await expect(drawer).toContainText("Local EVM rehearsal (not Monad)");
+  await expect(drawer).toContainText("not Monad");
 });
 
 test.describe("phone width", () => {

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { api, ApiError } from "./api";
+import { api, type ApiError, toApiError } from "./api";
 import type { SystemInfo } from "./types";
 
 /** Milliseconds left until `expiresAt`, ticking every 250 ms; null when there is no deadline. */
@@ -15,6 +15,19 @@ export function useCountdown(expiresAt: string | null | undefined): number | nul
   }, [expiresAt]);
   if (!expiresAt) return null;
   return new Date(expiresAt).getTime() - now;
+}
+
+/** True once `iso` is in the past; flips exactly once, without re-rendering on every tick. */
+export function useDeadlinePassed(iso: string | null | undefined): boolean {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!iso) return;
+    const left = new Date(iso).getTime() - Date.now();
+    if (left <= 0) return;
+    const t = window.setTimeout(() => setNow(Date.now()), left + 50);
+    return () => window.clearTimeout(t);
+  }, [iso]);
+  return Boolean(iso) && new Date(iso as string).getTime() <= now;
 }
 
 let systemCache: Promise<SystemInfo> | null = null;
@@ -30,7 +43,7 @@ export function useSystem(): { system: SystemInfo | null; error: ApiError | null
       .then((s) => alive && setSystem(s))
       .catch((e: unknown) => {
         systemCache = null;
-        if (alive) setError(e instanceof ApiError ? e : new ApiError(0, "UNKNOWN", String(e)));
+        if (alive) setError(toApiError(e));
       });
     return () => {
       alive = false;
@@ -54,7 +67,7 @@ export function useLoad<T>(key: string | null, loader: () => Promise<T>): { data
     loaderRef
       .current()
       .then((data) => alive && setSettled({ key, data, error: null }))
-      .catch((e: unknown) => alive && setSettled({ key, data: null, error: e instanceof ApiError ? e : new ApiError(0, "UNKNOWN", String(e)) }));
+      .catch((e: unknown) => alive && setSettled({ key, data: null, error: toApiError(e) }));
     return () => {
       alive = false;
     };

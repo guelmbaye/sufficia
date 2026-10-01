@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { ErrorNote } from "@/components/ErrorNote";
 import { StateIcon } from "@/components/StateIcon";
-import { api, ApiError } from "@/lib/api";
+import { api, type ApiError, toApiError } from "@/lib/api";
 import { GRAND_PRIZE_INTENT, GRAND_PRIZE_SCENARIO } from "@/lib/constants";
 import { useRun } from "@/lib/run";
 
@@ -26,16 +26,14 @@ export default function DemoPage() {
       .then((run) => {
         const decide = [...run.timeline].reverse().find((s) => s.op === "decide");
         update({
-          intentId: run.intent_id,
           contractId: run.contract_id,
-          intentText: GRAND_PRIZE_INTENT,
           decisionId: decide?.decision_id as string | undefined,
           decisionState: run.final_state ?? undefined,
           receiptId: (decide?.receipt_id as string | undefined) ?? undefined,
         });
         router.replace(`/gate/${run.contract_id}`);
       })
-      .catch((e: unknown) => setError(e instanceof ApiError ? e : new ApiError(0, "UNKNOWN", String(e))));
+      .catch((e: unknown) => setError(toApiError(e)));
   }, [reset, router, update]);
 
   return (

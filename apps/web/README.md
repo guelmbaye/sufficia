@@ -44,6 +44,13 @@ chain mode and contract addresses, recent transactions with decoded `EvidenceGat
   condition) and x402 payments.
 - **State is color plus icon plus word.** Deny red, allow green, stale/conflict amber, abstain grey, each with its own
   glyph, so no state depends on color alone.
+- **Each fact once per screen.** Evidence rows state facts (value, requirement, source, age); the reason for the
+  decision appears only in the gate, the consequence for the money only once. Identical replay reasons are shown
+  once. Labels for providers, source modes, actions, units, chains and test conditions live in `src/lib/format.ts`
+  and `src/lib/states.ts` only.
+- **Opening a page writes nothing.** Reads only, except the explicit acts (compile, acquire, test a condition,
+  execute, replay) and publishing a fresh AUTHORIZE's authorization while its window is open. An expired
+  authorization is explained, never re-published (covered by an end-to-end test that records every request).
 - **One animation.** Connectors draw into the gate, then the gate settles; disabled under `prefers-reduced-motion`.
 - **The Live Gate fits 1440×900 without vertical scroll** (checked by the end-to-end suite's viewport).
 
@@ -51,10 +58,11 @@ chain mode and contract addresses, recent transactions with decoded `EvidenceGat
 
 ```
 src/app/                 routes (one client page per screen) + api/v1 proxy
-src/components/          AppShell (stepper, chain badge, shortcuts), ProofDrawer, Drawer, Hash, StateIcon
+src/components/          AppShell (stepper, chain badge, shortcuts), ProofDrawer, Drawer, Hash, StateIcon, LoadError
 src/components/gate/     IntentColumn, EvidenceLedger, Connectors, GatePanel, TestConditions, EvidenceInspector
 src/components/receipt/  ReceiptTimeline, EvidenceTable, IntegrityPanel, ReplayPanel, TamperTest, CompareRuns
 src/lib/                 typed API client, response types, formatting, decision-state vocabulary, run context
-tests/unit/              vitest: formatting, state vocabulary, API client, proxy
-e2e/                     Playwright: Grand Prize flow (+ screenshots), test conditions, mission, proof drawer
+tests/unit/              vitest: formatting, state vocabulary, run context, API client, proxy
+e2e/                     Playwright: Grand Prize flow (+ screenshots), test conditions, authority expiry, mission,
+                         proof drawer, phone width
 ```

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { buildRows } from "@/components/gate/rows";
-import { chainLabel, consequence, DECISION_META, rowStatus } from "@/lib/states";
+import { mergeRun } from "@/lib/run";
+import { chainLabel, conditionWord, consequence, DECISION_META, explorerTx, requirementStatus, rowStatus } from "@/lib/states";
 import type { Decision, EvidenceContract, RequirementResult } from "@/lib/types";
 
 const result = (over: Partial<RequirementResult>): RequirementResult => ({
@@ -35,7 +36,17 @@ describe("state vocabulary", () => {
   });
   it("labels the chain honestly", () => {
     expect(chainLabel("LOCAL_EVM").honest).toContain("not Monad");
-    expect(chainLabel("MONAD_TESTNET")).toMatchObject({ name: "Monad", isMonad: true });
+    expect(chainLabel("MONAD_TESTNET")).toMatchObject({ name: "Monad", display: "Monad testnet", isMonad: true });
+    expect(chainLabel("DISABLED").display).toBe("Chain disabled"); // never "Local EVM" by default
+  });
+  it("links transactions to an explorer only on Monad", () => {
+    expect(explorerTx("https://testnet.monadvision.com", "MONAD_TESTNET", "0xab")).toBe("https://testnet.monadvision.com/tx/0xab");
+    expect(explorerTx("https://testnet.monadvision.com", "LOCAL_EVM", "0xab")).toBeNull();
+    expect(explorerTx(null, "LOCAL_EVM", "0xab", { explorer_url: "https://x/tx/0xab" })).toBe("https://x/tx/0xab");
+  });
+  it("names test conditions the same way everywhere", () => {
+    expect(conditionWord("remove")).toBe("missing");
+    expect(conditionWord("threshold")).toBe("threshold fail");
   });
 });
 
@@ -47,6 +58,11 @@ describe("rows follow the engine result, never recompute it", () => {
     expect(rowStatus(result({ status: "UNKNOWN", reason_code: "EVIDENCE_STALE" }))).toBe("STALE");
     expect(rowStatus(result({ status: "UNKNOWN", reason_code: "CRITICAL_SOURCE_CONFLICT" }))).toBe("CONFLICT");
     expect(rowStatus(result({ status: "UNKNOWN", reason_code: "MISSING_REQUIRED_EVIDENCE" }))).toBe("MISSING");
+  });
+  it("reads receipt lines with the same rules", () => {
+    expect(requirementStatus("UNKNOWN", "EVIDENCE_STALE")).toBe("STALE");
+    expect(requirementStatus("UNKNOWN", null)).toBe("MISSING");
+    expect(requirementStatus("PASS", null)).toBe("PASS");
   });
   it("marks only the rows that explain the decision as causal", () => {
     const contract = {
@@ -69,5 +85,18 @@ describe("rows follow the engine result, never recompute it", () => {
       ["req_inflow", "PASS", false],
       ["req_liquidity", "FAIL", true],
     ]);
+  });
+});
+
+describe("run context", () => {
+  it("forgets another contract's decision and receipt", () => {
+    const prev = { contractId: "ec_a", decisionId: "dec_a", decisionState: "AUTHORIZE" as const, receiptId: "rcpt_a" };
+    expect(mergeRun(prev, { contractId: "ec_b" })).toEqual({ contractId: "ec_b" });
+    expect(mergeRun(prev, { contractId: "ec_a" })).toEqual(prev);
+  });
+  it("forgets the receipt of an older decision unless a new one is given", () => {
+    const prev = { contractId: "ec_a", decisionId: "dec_a", receiptId: "rcpt_a" };
+    expect(mergeRun(prev, { decisionId: "dec_b", decisionState: "DENY" })).toEqual({ contractId: "ec_a", decisionId: "dec_b", decisionState: "DENY" });
+    expect(mergeRun(prev, { decisionId: "dec_b", receiptId: "rcpt_b" })).toMatchObject({ receiptId: "rcpt_b" });
   });
 });

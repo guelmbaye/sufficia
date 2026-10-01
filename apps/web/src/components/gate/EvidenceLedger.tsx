@@ -3,28 +3,27 @@
 import { forwardRef } from "react";
 
 import { StateIcon } from "@/components/StateIcon";
-import { claimLabel, formatAge, formatAmount, formatClaimValue, plainRequirement, providerLabel } from "@/lib/format";
+import { claimLabel, formatAge, formatAmount, formatClaimValue, modeLabel, plainRequirement, providerLabel } from "@/lib/format";
 import { ROW_META, TONE_CLASSES } from "@/lib/states";
 import type { EvidenceItemView } from "@/lib/types";
 
 import { usedItems, type GateRow } from "./rows";
 
-const MODE_LABEL: Record<string, string> = {
-  LIVE: "Live",
-  RECORDED: "Recorded",
-  SIMULATED: "Simulated",
-  INJECTED: "Test condition",
-};
-
-function SourceLine({ view, age }: { view: EvidenceItemView; age?: string | number | null }) {
+/* Each row states facts about its evidence (value, requirement, source, age). Why those facts lead
+   to the decision is said once, in the gate. */
+function SourceLine({ view, age, maxAge }: { view: EvidenceItemView; age?: string | number | null; maxAge?: number }) {
   const it = view.item;
   const pay = it.economic.payment;
+  const provider = providerLabel(it.source.provider);
+  const mode = modeLabel(it.source.mode);
   return (
     <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-      <span className="text-ink-2">{providerLabel(it.source.provider)}</span>
-      <span className="rounded-sm border border-rule-strong px-1.5 py-px text-2xs text-ink-2" title={`Source mode: ${it.source.mode}`}>
-        {MODE_LABEL[it.source.mode] ?? it.source.mode}
-      </span>
+      <span className="text-ink-2">{provider}</span>
+      {mode !== provider ? (
+        <span className="rounded-sm border border-rule-strong px-1.5 py-px text-2xs text-ink-2" title={`Source mode: ${it.source.mode}`}>
+          {mode}
+        </span>
+      ) : null}
       {pay ? (
         <span
           className="rounded-sm border border-signal/40 px-1.5 py-px text-2xs text-signal"
@@ -33,7 +32,12 @@ function SourceLine({ view, age }: { view: EvidenceItemView; age?: string | numb
           Paid {formatAmount(pay.settled_amount ?? pay.quoted_amount, pay.currency)} via x402
         </span>
       ) : null}
-      {age !== undefined && age !== null ? <span className="tabular">age at decision {formatAge(age)}</span> : null}
+      {age !== undefined && age !== null ? (
+        <span className={`tabular ${maxAge !== undefined ? "font-semibold text-hold" : ""}`}>
+          age at decision {formatAge(age)}
+          {maxAge !== undefined ? `, maximum ${maxAge} s` : ""}
+        </span>
+      ) : null}
     </p>
   );
 }
@@ -47,38 +51,28 @@ function RowBody({ row }: { row: GateRow }) {
     return <p className="mt-1 text-sm text-muted">Waiting for evidence</p>;
   }
   if (row.status === "MISSING") {
-    const causes = row.failures.map((f) => `${providerLabel(f.provider)}: ${f.code.replaceAll("_", " ").toLowerCase()}`);
-    const invalid = row.assessments.filter((a) => a.status === "INVALID").flatMap((a) => a.reason_codes);
+    const causes = [
+      ...row.failures.map((f) => `${providerLabel(f.provider)}: ${f.code.replaceAll("_", " ").toLowerCase()}`),
+      ...row.assessments.filter((a) => a.status === "INVALID").flatMap((a) => a.reason_codes.map((c) => c.replaceAll("_", " ").toLowerCase())),
+    ];
     return (
       <>
         <p className="mt-1 font-wide text-[1.75rem] font-bold leading-tight text-abstain">No usable evidence</p>
-        <p className="mt-1 text-sm text-ink-2">{row.reason?.message ?? row.result?.human_reason}</p>
-        {causes.length || invalid.length ? (
-          <p className="mt-1 text-xs text-muted">{[...causes, ...invalid.map((c) => c.replaceAll("_", " ").toLowerCase())].join("; ")}</p>
-        ) : null}
+        {causes.length ? <p className="mt-1 text-xs text-muted">{causes.join("; ")}</p> : null}
       </>
     );
   }
   if (row.status === "CONFLICT") {
-    const d = (row.reason?.detail ?? {}) as Record<string, string>;
-    const pct = d.relative_difference ? `${Math.round(Number(d.relative_difference) * 1000) / 10}%` : null;
     return (
-      <>
-        <div className="mt-1 grid grid-cols-2 gap-4">
-          {used.slice(0, 2).map((v, i) => (
-            <div key={v.item.evidence_id}>
-              <p className="text-xs text-muted">Source {i === 0 ? "A" : "B"}</p>
-              <p className="font-wide text-[1.75rem] font-bold leading-tight tabular">{formatClaimValue(v.item.claim.value, v.item.claim.unit, v.item.claim.name)}</p>
-              <SourceLine view={v} />
-            </div>
-          ))}
-        </div>
-        {pct ? (
-          <p className="mt-2 text-sm text-hold">
-            {pct} apart. The contract tolerates {Math.round(Number(d.tolerance ?? 0.1) * 100)}%, so no source is chosen.
-          </p>
-        ) : null}
-      </>
+      <div className="mt-1 grid grid-cols-2 gap-4">
+        {used.slice(0, 2).map((v, i) => (
+          <div key={v.item.evidence_id}>
+            <p className="text-xs text-muted">Source {i === 0 ? "A" : "B"}</p>
+            <p className="font-wide text-[1.75rem] font-bold leading-tight tabular text-hold">{formatClaimValue(v.item.claim.value, v.item.claim.unit, v.item.claim.name)}</p>
+            <SourceLine view={v} />
+          </div>
+        ))}
+      </div>
     );
   }
   const v = used[0];
@@ -93,12 +87,7 @@ function RowBody({ row }: { row: GateRow }) {
           Required <span className="font-semibold tabular">{plainRequirement(row.result?.required_expression ?? req.operator)}</span>
         </p>
       </div>
-      {row.status === "STALE" && age !== undefined && age !== null ? (
-        <p className="mt-1 text-sm font-semibold text-hold">
-          Observed {formatAge(age)} before the decision. Maximum age {req.max_age_seconds} s.
-        </p>
-      ) : null}
-      {v ? <SourceLine view={v} age={row.status === "STALE" ? null : age} /> : null}
+      {v ? <SourceLine view={v} age={age} maxAge={row.status === "STALE" ? req.max_age_seconds : undefined} /> : null}
     </>
   );
 }

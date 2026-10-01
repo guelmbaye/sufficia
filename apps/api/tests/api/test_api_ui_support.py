@@ -48,6 +48,10 @@ def test_receipt_timeline_executed(client, flow):
     times = [s["at"] for s in rc["timeline"]]
     assert all(times) and times == sorted(times)  # chronological, from stored timestamps
     assert rc["timeline"][6]["tx_hash"] == ex["tx_hash"]
+    assert [s["label"] for s in rc["timeline"]][3:5] == ["Decision", "Authorization issued"]
+    # the execution result already carries the receipt commitment, so the UI needs no extra read
+    assert {t["purpose"] for t in ex["transactions"]} == {"PROTECTED_EXECUTION", "RECEIPT_COMMITMENT"}
+    assert rc["evidence_reasons"] == {"req_inflow": None, "req_liquidity": None, "req_price": None}
 
 
 def test_receipt_timeline_blocked(client, flow):
@@ -55,6 +59,15 @@ def test_receipt_timeline_blocked(client, flow):
     d = flow.post(f"/api/v1/demo/contracts/{cid}/test/threshold", None, 201).json()["decision"]["decision"]
     rc = client.get(f"/api/v1/decisions/{d['decision_id']}/receipt").json()
     assert [s["step"] for s in rc["timeline"]] == ["intent", "contract", "evidence", "decision", "blocked", "receipt"]
+
+
+def test_receipt_explains_requirements_that_were_not_established(client, flow):
+    cid = flow.contract()
+    d = flow.post(f"/api/v1/demo/contracts/{cid}/test/stale", None, 201).json()["decision"]["decision"]
+    rc = client.get(f"/api/v1/decisions/{d['decision_id']}/receipt").json()
+    assert rc["evidence_reasons"]["req_price"] == "EVIDENCE_STALE"
+    assert {e["requirement_id"]: e["status"] for e in rc["receipt"]["evidence"]}["req_price"] == "UNKNOWN"
+    assert rc["timeline"][2]["label"] == "Evidence changed by a test condition (stale evidence)"
 
 
 def test_tamper_test_breaks_integrity_without_modifying_anything(client, flow):
