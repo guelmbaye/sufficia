@@ -131,7 +131,7 @@ class Deployment:
     def save(self, path: str | Path) -> Path:
         target = Path(path)
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(self.to_json(), encoding="utf-8")
+        target.write_text(self.to_json(), encoding="utf-8", newline="\n")
         return target
 
 

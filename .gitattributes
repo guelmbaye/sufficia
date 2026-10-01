@@ -1,0 +1,12 @@
+# Keep LF everywhere, including Git for Windows checkouts (core.autocrlf=true by default there).
+# The benchmark fixture digest and the committed artifacts are hashed byte for byte, so a CRLF
+# checkout would make `make verify` fail on Windows.
+* text=auto eol=lf
+
+*.png  binary
+*.jpg  binary
+*.ico  binary
+*.pdf  binary
+*.woff binary
+*.woff2 binary
+*.zip  binary

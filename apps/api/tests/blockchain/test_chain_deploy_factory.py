@@ -194,7 +194,7 @@ def test_deploy_script_cli_entrypoint(tmp_path):
     target = tmp_path / "cli.json"
     proc = subprocess.run(
         [sys.executable, str(SCRIPT), "--network", "local", "--out", str(target)],
-        cwd=tmp_path, capture_output=True, text=True, timeout=120,
+        cwd=tmp_path, capture_output=True, text=True, encoding="utf-8", timeout=120,
     )
     assert proc.returncode == 0, proc.stdout + proc.stderr
     assert load_deployment(target).gate in proc.stdout

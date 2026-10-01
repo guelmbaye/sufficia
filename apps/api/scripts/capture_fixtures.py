@@ -147,7 +147,7 @@ async def capture(
                     status = f"{name}: refusing to re-record a RECORDED observation"
                     continue
                 path = out / f"{requirement.claim}.json"
-                path.write_text(fixture_json(raw), encoding="utf-8")
+                path.write_text(fixture_json(raw), encoding="utf-8", newline="\n")
                 status = f"captured from {raw.provider} ({raw.mode.value}) -> {path}"
                 break
             report[requirement.claim] = status

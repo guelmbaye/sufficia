@@ -1043,10 +1043,12 @@ def replay_worker() -> int:
 def cross_process_replay(snapshots: dict[str, str], timeout: float = 600) -> dict:
     env = dict(os.environ)
     env["PYTHONPATH"] = os.pathsep.join([str(IMPORT_ROOT)] + ([env["PYTHONPATH"]] if env.get("PYTHONPATH") else []))
+    env["PYTHONIOENCODING"] = "utf-8"  # same bytes on every OS (Windows pipes default to the ANSI code page)
     cmd = [sys.executable, "-c", "import sys; from sufficia.benchmark.runner import replay_worker; sys.exit(replay_worker())"]
     try:
         proc = subprocess.run(
-            cmd, input=json.dumps({"snapshots": snapshots}), capture_output=True, text=True, env=env, timeout=timeout,
+            cmd, input=json.dumps({"snapshots": snapshots}), capture_output=True, text=True, encoding="utf-8", env=env,
+            timeout=timeout,
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
         return {"error": f"{type(exc).__name__}: {exc}", "results": {}}
@@ -1242,7 +1244,7 @@ def git_commit(root: Path) -> str:
             return os.environ[var]
     try:
         proc = subprocess.run(
-            ["git", "-C", str(root), "rev-parse", "HEAD"], capture_output=True, text=True, timeout=10,
+            ["git", "-C", str(root), "rev-parse", "HEAD"], capture_output=True, text=True, encoding="utf-8", timeout=10,
         )
     except (OSError, subprocess.TimeoutExpired):
         return "unversioned"

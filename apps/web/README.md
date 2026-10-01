@@ -14,8 +14,9 @@ npm run e2e            # Playwright: starts a fresh API (port 8100, temp SQLite,
 npm run screenshots    # Grand Prize flow only; writes A-denied / B-authorized / C-receipt to docs/evidence/screenshots
 ```
 
-`npm run e2e` needs a production build first and `python3` with `apps/api` installed (`make install`). Set
-`SCREENSHOT_DIR` to write the screenshots elsewhere and `PYTHON` to choose the interpreter.
+`npm run e2e` needs a production build first and a Python with `apps/api` installed. It uses `PYTHON` if set,
+otherwise `apps/api/.venv` when it exists, otherwise `python3` (`python` on Windows). Set `SCREENSHOT_DIR` to write
+the screenshots elsewhere.
 
 ## Screens
 

@@ -393,12 +393,14 @@ def write_reports(run: BenchmarkRun, reports_dir: Path, generated_at: datetime |
         "replay_md": reports_dir / REPLAY_MD,
         "replay_json": reports_dir / REPLAY_JSON,
     }
-    paths["benchmark_md"].write_text(benchmark_markdown(run, when), encoding="utf-8")
+    paths["benchmark_md"].write_text(benchmark_markdown(run, when), encoding="utf-8", newline="\n")
     paths["benchmark_json"].write_text(
-        json.dumps(benchmark_json(run, when), indent=2, default=_json_default) + "\n", encoding="utf-8"
+        json.dumps(benchmark_json(run, when), indent=2, default=_json_default) + "\n", encoding="utf-8", newline="\n"
     )
-    paths["replay_md"].write_text(replay_markdown(run, when), encoding="utf-8")
-    paths["replay_json"].write_text(json.dumps(replay_json(run, when), indent=2, default=_json_default) + "\n", encoding="utf-8")
+    paths["replay_md"].write_text(replay_markdown(run, when), encoding="utf-8", newline="\n")
+    paths["replay_json"].write_text(
+        json.dumps(replay_json(run, when), indent=2, default=_json_default) + "\n", encoding="utf-8", newline="\n"
+    )
     return paths
 
 

@@ -367,7 +367,7 @@ def test_model_parameters_after_contract_freeze_cannot_change_the_decision():
 
 def test_fixture_loader_keeps_numbers_exact_and_strings_strings(tmp_path):
     p = tmp_path / "x.json"
-    p.write_text('{"a": 0.1, "b": "0.1", "c": {"$nonfinite": "NaN"}, "d": 1e400}')
+    p.write_text('{"a": 0.1, "b": "0.1", "c": {"$nonfinite": "NaN"}, "d": 1e400}', encoding="utf-8")
     data = load_json(p)
     assert data["a"] == Decimal("0.1") and data["b"] == "0.1"
     assert data["c"].is_nan()

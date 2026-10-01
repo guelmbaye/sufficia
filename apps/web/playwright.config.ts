@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import { mkdtempSync } from "node:fs";
+import { existsSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -9,7 +9,10 @@ const API_PORT = Number(process.env.E2E_API_PORT ?? 8100);
 const WEB_PORT = Number(process.env.E2E_WEB_PORT ?? 3100);
 const apiDir = resolve(__dirname, "../api");
 const db = join(mkdtempSync(join(tmpdir(), "sufficia-e2e-")), "e2e.db");
-const python = process.env.PYTHON ?? "python3";
+// PYTHON wins; otherwise apps/api/.venv if it exists, otherwise the platform's usual interpreter name.
+const venvPython =
+  process.platform === "win32" ? join(apiDir, ".venv", "Scripts", "python.exe") : join(apiDir, ".venv", "bin", "python");
+const python = process.env.PYTHON ?? (existsSync(venvPython) ? venvPython : process.platform === "win32" ? "python" : "python3");
 
 export default defineConfig({
   testDir: "./e2e",
@@ -28,7 +31,7 @@ export default defineConfig({
   projects: [{ name: "chromium", use: { viewport: { width: 1440, height: 900 } } }],
   webServer: [
     {
-      command: `${python} -m uvicorn sufficia.api.app:app --host 127.0.0.1 --port ${API_PORT} --log-level warning`,
+      command: `"${python}" -m uvicorn sufficia.api.app:app --host 127.0.0.1 --port ${API_PORT} --log-level warning`,
       cwd: apiDir,
       url: `http://127.0.0.1:${API_PORT}/health`,
       env: {

@@ -72,29 +72,29 @@ def test_authorize_cases_expire_no_later_than_supporting_evidence(run):
 
 
 def test_fixtures_match_generator():
-    proc = subprocess.run([sys.executable, str(BENCH / "generate_fixtures.py"), "--check"], capture_output=True, text=True)
+    proc = subprocess.run([sys.executable, str(BENCH / "generate_fixtures.py"), "--check"], capture_output=True, text=True, encoding="utf-8")
     assert proc.returncode == 0, proc.stdout + proc.stderr
 
 
 def test_generator_never_calls_the_engine():
-    text = (BENCH / "generate_fixtures.py").read_text()
+    text = (BENCH / "generate_fixtures.py").read_text(encoding="utf-8")
     assert "sufficia" not in text.split('"""', 2)[2].split("BENCHMARK_VERSION")[0]  # no imports of the package
     assert "import sufficia" not in text and "from sufficia" not in text
 
 
 def test_reports_are_written_and_computed(tmp_path, run):
     paths = write_reports(run, tmp_path)
-    bj = json.loads(paths["benchmark_json"].read_text())
+    bj = json.loads(paths["benchmark_json"].read_text(encoding="utf-8"))
     assert bj["total"] == 50 and bj["passed"] is True
     assert bj["metrics"]["reason_fidelity_pct"] == "100"
     assert bj["engine_version"] == run.engine_version and bj["benchmark_version"] == "1.0.0"
     assert bj["commit"] == run.commit and bj["failures"] == []
     assert len(bj["cases"]) == 50
-    rj = json.loads(paths["replay_json"].read_text())
+    rj = json.loads(paths["replay_json"].read_text(encoding="utf-8"))
     assert rj["matched"] == rj["attempted"] == 50 and rj["mismatches"] == []
-    md = paths["benchmark_md"].read_text()
+    md = paths["benchmark_md"].read_text(encoding="utf-8")
     assert "**50 / 50** (100%)" in md and "| threshold | DENY | 10 |" in md
-    assert "Replay fidelity** | **100%**" in paths["replay_md"].read_text()
+    assert "Replay fidelity** | **100%**" in paths["replay_md"].read_text(encoding="utf-8")
 
 
 def test_cli_exit_codes(tmp_path, capsys):
@@ -118,9 +118,9 @@ def _copy_bench(tmp_path) -> Path:
 
 
 def _rewrite(path: Path, mutate):
-    data = json.loads(path.read_text(), parse_float=Decimal)
+    data = json.loads(path.read_text(encoding="utf-8"), parse_float=Decimal)
     mutate(data)
-    path.write_text(json.dumps(data, indent=2, default=str))
+    path.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
 
 
 def test_wrong_expected_state_is_detected(tmp_path):

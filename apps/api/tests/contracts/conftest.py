@@ -203,7 +203,7 @@ def load_artifact(name: str) -> dict:
             f"Missing contract artifact {path}. Build it first: cd contracts && npm install && npm run build",
             pytrace=False,
         )
-    return json.loads(path.read_text())
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 # ---------------------------------------------------------------------------

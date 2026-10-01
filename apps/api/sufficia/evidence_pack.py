@@ -118,7 +118,9 @@ def _now() -> datetime:
 
 def _commit() -> str:
     try:
-        return subprocess.run(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, capture_output=True, text=True, check=True).stdout.strip()
+        return subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, capture_output=True, text=True, encoding="utf-8", check=True
+        ).stdout.strip()
     except Exception:
         return "unversioned"
 
@@ -126,7 +128,7 @@ def _commit() -> str:
 def _pytest(targets: list[str], xml_path: Path) -> dict[str, str]:
     """Runs pytest on node ids / paths and returns {nodeid: PASS|FAIL|SKIP}."""
     cmd = [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", f"--junitxml={xml_path}", *targets]
-    subprocess.run(cmd, cwd=API_ROOT, capture_output=True, text=True)
+    subprocess.run(cmd, cwd=API_ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # results come from the JUnit XML
     results: dict[str, str] = {}
     root = ET.parse(xml_path).getroot()
     for tc in root.iter("testcase"):
@@ -182,7 +184,7 @@ def write_security(out: Path, commit: str, tmp: Path) -> dict[str, Any]:
         cell = "<br>".join(f"`{t.split('::')[1]}` ({t.split('/')[1]}) — {s}" for t, s in zip(tests, statuses))
         lines.append(f"| {inv} | {statement} | {'PASS' if ok else 'FAIL'} | {cell} |")
     lines += ["", "Re-run: `cd apps/api && python -m pytest " + " ".join(nodes[:2]) + " ...` (full list above)."]
-    (out / "02-security-invariants.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (out / "02-security-invariants.md").write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     return {"invariants": len(rows), "passing": sum(r[4] for r in rows), "ok": all_ok}
 
 
@@ -191,8 +193,8 @@ def write_contracts(out: Path, commit: str, tmp: Path, deployment: dict[str, Any
     c_all = _counts(tmp / "contracts.xml")
     _pytest(["tests/contracts"], tmp / "gate.xml")
     c_gate = _counts(tmp / "gate.xml")
-    art = json.loads((API_ROOT / "sufficia" / "blockchain" / "artifacts" / "EvidenceGate.json").read_text())
-    sol = (REPO_ROOT / "contracts" / "test" / "EvidenceGate.t.sol").read_text()
+    art = json.loads((API_ROOT / "sufficia" / "blockchain" / "artifacts" / "EvidenceGate.json").read_text(encoding="utf-8"))
+    sol = (REPO_ROOT / "contracts" / "test" / "EvidenceGate.t.sol").read_text(encoding="utf-8")
     foundry_tests = sol.count("function test")
     fuzz = sol.count("function testFuzz")
     lines = [
@@ -227,7 +229,7 @@ def write_contracts(out: Path, commit: str, tmp: Path, deployment: dict[str, Any
         f"- EvidenceGate: `{deployment.get('evidence_gate')}`",
         f"- Execution router: `{deployment.get('router')}` · USDC: `{deployment.get('usdc')}` · TOKEN-X: `{deployment.get('token_x')}`",
     ]
-    (out / "03-smart-contract-tests.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (out / "03-smart-contract-tests.md").write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     return {"evm_tests": c_gate, "chain_tests": c_all, "foundry_tests": foundry_tests}
 
 
@@ -312,7 +314,7 @@ def write_monad(out: Path, commit: str, p: dict[str, Any]) -> None:
         f"- Result **{p['replay']['result']}**, chain verification `{p['replay']['chain_verification']}`, "
         f"{sum(1 for c in p['replay']['checks'] if c['ok'])}/{len(p['replay']['checks'])} checks passing, market queried: {p['replay']['market_queried']}",
     ]
-    (out / "04-monad-proof.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (out / "04-monad-proof.md").write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
 
 def write_x402(out: Path, commit: str, p: dict[str, Any], settings: Settings) -> None:
@@ -344,7 +346,7 @@ def write_x402(out: Path, commit: str, p: dict[str, Any], settings: Settings) ->
         )
     lines += ["", "Payment success never makes evidence valid: the paid observation above went through the same normalizer and "
               "Decision Engine as every other item (see 02-security-invariants.md, INV-12)."]
-    (out / "05-x402-proof.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (out / "05-x402-proof.md").write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
 
 def write_scenarios(out: Path, commit: str, p: dict[str, Any]) -> dict[str, Any]:
@@ -367,7 +369,7 @@ def write_scenarios(out: Path, commit: str, p: dict[str, Any]) -> dict[str, Any]
               "STALE → REFRESH · CONFLICT → ESCALATE.", "",
               "Injected observations are attributed to the provider `demo-lab` and badged `INJECTED`; they never reuse a real "
               "provider's name, and they are evaluated by the same engine as acquired evidence."]
-    (out / "07-demo-scenarios.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (out / "07-demo-scenarios.md").write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     return {"scenarios": len(p["runs"]), "passed": passed}
 
 
@@ -449,8 +451,8 @@ def main(argv: list[str] | None = None) -> int:
                 "network": info["network"], "chain_id": info["chain_id"], "evidence_gate": info["evidence_gate"],
                 "router": info["router"], "usdc": info["usdc"], "token_x": info["token_x"]})
         print(f"invariants: {summary['security']['passing']}/{summary['security']['invariants']}")
-    (out / "08-known-limitations.md").write_text(LIMITATIONS, encoding="utf-8")
-    (out / "proof.json").write_text(json.dumps(summary, indent=2, default=str) + "\n", encoding="utf-8")
+    (out / "08-known-limitations.md").write_text(LIMITATIONS, encoding="utf-8", newline="\n")
+    (out / "proof.json").write_text(json.dumps(summary, indent=2, default=str) + "\n", encoding="utf-8", newline="\n")
     ok = run.ok and summary["scenarios"]["passed"] == summary["scenarios"]["scenarios"] and summary["proof"]["replay"] == "MATCH"
     if "security" in summary:
         ok = ok and summary["security"]["ok"]

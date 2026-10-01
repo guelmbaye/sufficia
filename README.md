@@ -23,6 +23,7 @@ make e2e              # browser end-to-end tests against the real stack; writes 
 ```
 
 Or everything in containers: `docker compose up --build` → web app on `:3000`, API on `:8000`.
+On Windows without `make`, the same steps in PowerShell are in [docs/deployment.md](docs/deployment.md#windows-powershell-no-make-no-c-compiler).
 `make demo` runs the same Grand Prize scenario headless over HTTP.
 
 Without configuration the API runs the **demo profile on an in-process EVM that executes the real `EvidenceGate`

@@ -24,12 +24,21 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-local-evm = ["eth-tester[py-evm]>=0.12.0b1"]
+# In-process EVM (CHAIN_MODE=LOCAL_EVM). Deliberately NOT eth-tester[py-evm]: that extra pulls
+# eth-hash[pysha3] -> safe-pysha3, a C extension with no Windows wheel (needs MSVC + Windows SDK).
+# eth-hash's pycryptodome backend ships wheels everywhere and produces identical keccak digests.
+local-evm = [
+  "eth-tester>=0.12.0b1,<0.15",
+  "py-evm>=0.12.0b2,<0.13.0b1",
+  "eth-hash[pycryptodome]>=0.5.1",
+]
 postgres = ["psycopg[binary]>=3.1"]
 dev = [
   "pytest>=8",
   "hypothesis>=6.100",
-  "eth-tester[py-evm]>=0.12.0b1",
+  "eth-tester>=0.12.0b1,<0.15",
+  "py-evm>=0.12.0b2,<0.13.0b1",
+  "eth-hash[pycryptodome]>=0.5.1",
 ]
 
 [project.scripts]

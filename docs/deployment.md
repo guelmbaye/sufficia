@@ -15,6 +15,29 @@ standalone image, `SUFFICIA_API_URL=http://api:8000`), or `docker compose --prof
 The web image is built once and pointed at any API at runtime: `SUFFICIA_API_URL` (and `SUFFICIA_API_KEY` when the API
 runs with `API_KEY`) are read by the `/api/v1` proxy on each request.
 
+### Windows (PowerShell, no `make`, no C compiler)
+
+Every dependency installs from wheels (Python 3.11–3.13); nothing needs Visual Studio or the Windows SDK.
+
+```powershell
+cd apps\api
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -U pip
+pip install -e ".[dev]" -e ..\..\packages\sdk\python
+python -m uvicorn sufficia.api.app:app --port 8000      # http://127.0.0.1:8000/docs
+
+# second terminal
+cd apps\web
+npm ci
+npm run dev                                              # http://127.0.0.1:3000/demo
+```
+
+Checks without `make`: `python -m pytest -q` and `python -m sufficia.benchmark` in `apps\api`;
+`python tests\benchmark\generate_fixtures.py --check` at the root; `npm run check`, `npm run build` and
+`npm run e2e` in `apps\web` (the E2E suite uses `apps\api\.venv` automatically, or `$env:PYTHON`).
+The repository pins LF line endings (`.gitattributes`): the benchmark fixtures are hashed byte for byte.
+
 ## 2. Monad testnet
 
 Network (Monad docs): chain id `10143`, RPC `https://testnet-rpc.monad.xyz` (fallbacks

@@ -172,7 +172,7 @@ def benchmark_report(request: Request):
     p = Path(_app(request).settings.evidence_reports_dir) / "benchmark.json"
     if not p.is_file():
         raise ApiError(404, "BENCHMARK_NOT_RUN", "no benchmark report yet: run `python -m sufficia.benchmark` or POST /api/v1/benchmark/run")
-    return ok(json.loads(p.read_text()))
+    return ok(json.loads(p.read_text(encoding="utf-8")))
 
 
 @system.post("/api/v1/benchmark/run")

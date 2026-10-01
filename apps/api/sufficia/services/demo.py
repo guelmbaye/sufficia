@@ -332,7 +332,7 @@ class ScenarioRunner:
     def list(self) -> list[dict[str, Any]]:
         out = []
         for p in sorted(self.dir.glob("*.json")):
-            sc = json.loads(p.read_text())
+            sc = json.loads(p.read_text(encoding="utf-8"))
             out.append({k: sc.get(k) for k in ("scenario_id", "version", "title", "description")} | {"steps": len(sc.get("steps", []))})
         return out
 
@@ -342,7 +342,7 @@ class ScenarioRunner:
         p = self.dir / f"{scenario_id}.json"
         if not p.is_file():
             raise not_found("scenario", scenario_id)
-        return json.loads(p.read_text())
+        return json.loads(p.read_text(encoding="utf-8"))
 
     def run(self, scenario_id: str, *, execute: bool = True, stop_before: Optional[str] = None) -> dict[str, Any]:
         self.lab._require_demo()

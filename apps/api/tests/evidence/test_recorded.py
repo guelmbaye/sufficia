@@ -39,7 +39,7 @@ def _write(directory: Path, file_claim: str, **overrides) -> None:
         "endpoint_id": "nansen:/api/v1/smart-money/netflow",
     }
     fixture.update(overrides)
-    (directory / f"{file_claim}.json").write_text(json.dumps(fixture))
+    (directory / f"{file_claim}.json").write_text(json.dumps(fixture), encoding="utf-8")
 
 
 def test_recorded_labels_mode_and_preserves_captured_at(h, tmp_path):
@@ -79,11 +79,11 @@ def test_recorded_missing_fixture_and_missing_fields(h, tmp_path):
     with pytest.raises(AcquisitionError) as e:
         h.run(RecordedFixtureAdapter().fetch(h.req("asset_price"), ctx))
     assert e.value.code == ReasonCode.SOURCE_NOT_CONFIGURED
-    (tmp_path / "asset_price.json").write_text(json.dumps({"provider": "x", "claim": "asset_price"}))
+    (tmp_path / "asset_price.json").write_text(json.dumps({"provider": "x", "claim": "asset_price"}), encoding="utf-8")
     with pytest.raises(AcquisitionError) as e:
         h.run(RecordedFixtureAdapter().fetch(h.req("asset_price"), ctx))
     assert e.value.code == ReasonCode.MISSING_FIELD
-    (tmp_path / "asset_price.json").write_text("{nope")
+    (tmp_path / "asset_price.json").write_text("{nope", encoding="utf-8")
     with pytest.raises(AcquisitionError) as e:
         h.run(RecordedFixtureAdapter().fetch(h.req("asset_price"), ctx))
     assert e.value.code == ReasonCode.INVALID_RESPONSE
@@ -103,7 +103,7 @@ def test_shipped_sample_fixtures_are_labelled_simulated_and_usable(h):
     settings = h.make_settings(evidence_profile="recorded")
     directory = Path(settings.recorded_fixtures_dir)
     for claim in ("smart_money_inflow_24h", "available_liquidity", "asset_price"):
-        data = json.loads((directory / f"{claim}.json").read_text())
+        data = json.loads((directory / f"{claim}.json").read_text(encoding="utf-8"))
         assert data["provider"] == "simulated-market"
         assert data["original_mode"] == "SIMULATED" and "NOT a capture of a real provider" in data["note"]
     assert (directory / "README.md").is_file()
@@ -135,9 +135,9 @@ def test_capture_script_round_trip_preserves_hashes(h, tmp_path):
     settings = h.make_settings(recorded_fixtures_dir=str(tmp_path))
     report = h.run(module.capture(settings, out=tmp_path, claims=["asset_price"], sources=["scenario"], asset="TOKEN-X", allow_paid=False))
     assert report["asset_price"].startswith("captured from simulated-market (SIMULATED)")
-    data = json.loads((tmp_path / "asset_price.json").read_text())
+    data = json.loads((tmp_path / "asset_price.json").read_text(encoding="utf-8"))
     assert data["original_mode"] == "SIMULATED" and "NOT a capture" in data["note"]
-    assert json.loads((tmp_path / "asset_price.json").read_text(), parse_float=Decimal)["value"] == Decimal("0.428")
+    assert json.loads((tmp_path / "asset_price.json").read_text(encoding="utf-8"), parse_float=Decimal)["value"] == Decimal("0.428")
 
     ctx = h.make_ctx(settings=settings)
     requirement = h.req("asset_price")

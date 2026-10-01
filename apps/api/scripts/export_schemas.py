@@ -49,14 +49,14 @@ def main() -> int:
     ap.add_argument("--check", action="store_true")
     args = ap.parse_args()
     files = render()
-    stale = [p for p, text in files.items() if not p.exists() or p.read_text() != text]
+    stale = [p for p, text in files.items() if not p.exists() or p.read_text(encoding="utf-8") != text]
     if args.check:
         for p in stale:
             print(f"stale: {p.relative_to(ROOT)}")
         return 1 if stale else 0
     for p, text in files.items():
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(text)
+        p.write_text(text, encoding="utf-8", newline="\n")
     print(f"wrote {len(files)} files ({len(stale)} changed)")
     return 0
 
