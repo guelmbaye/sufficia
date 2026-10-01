@@ -12,7 +12,7 @@ import { api, type ApiError, toApiError } from "@/lib/api";
 import { actionVerb, formatAmount, formatCountdown, formatDateTime, formatNumber, formatTime, shortHash } from "@/lib/format";
 import { useCountdown, useSystem } from "@/lib/hooks";
 import { useRun } from "@/lib/run";
-import { chainLabel, DECISION_META, explorerTx } from "@/lib/states";
+import { chainLabel, DECISION_META, executionNote, explorerTx } from "@/lib/states";
 import type { AuthorizationView, ChainTx, DecisionView } from "@/lib/types";
 
 type StepState = "todo" | "doing" | "done" | "fail";
@@ -120,10 +120,17 @@ function Execution() {
       update({ contractId: dv.decision.contract_id, decisionId, decisionState: dv.decision.state, receiptId: dv.receipts.at(-1)?.receipt_id });
       if (dv.decision.state !== "AUTHORIZE") return;
       const done = dv.executions.find((e) => e.status === "EXECUTED");
+      if (!done && !dv.can_execute) return; // already spent or not executable here: explained below, nothing to call
       let a = dv.authorization;
       if (!done && (!a || a.status === "ISSUED" || a.status === "PUBLISH_FAILED")) {
         if (authorityLeft(dv) <= 1000) return; // nothing to publish: the expired panel explains it
-        a = await api.authorize(decisionId);
+        try {
+          a = await api.authorize(decisionId);
+        } catch (e) {
+          const err = toApiError(e);
+          setFailure({ error: err, receiptId: (err.detail?.receipt_id as string | undefined) ?? null });
+          return;
+        }
       }
       if (!a) return;
       const full = await api.authorization(a.authorization_id);
@@ -162,6 +169,31 @@ function Execution() {
         <Link href={`/gate/${d.contract_id}`} className="mt-6 inline-block text-signal underline underline-offset-4">
           Back to the live gate
         </Link>
+      </div>
+    );
+  }
+
+  const blockedHere = !executed && !view.can_execute;
+  if (blockedHere && (view.spent_by || !view.execution.executable)) {
+    return (
+      <div className="mx-auto max-w-[900px] px-6 py-14">
+        <p className="text-sm text-muted">Decision {d.decision_id}, authorized</p>
+        <h1 className="mt-1 font-expanded text-3xl font-extrabold">{view.spent_by ? "This intent already executed" : "Not executable here"}</h1>
+        <p className="mt-3 text-lg text-ink-2">
+          {view.spent_by
+            ? "Its protected amount moved once, under an earlier decision. An intent is spent at most once, so this decision gets no authorization."
+            : `The evidence is sufficient, but ${executionNote(view.execution)}. No authorization is issued.`}
+        </p>
+        <div className="mt-6 flex flex-wrap items-center gap-5">
+          {view.spent_by?.receipt_id ? (
+            <Link href={`/receipt/${view.spent_by.receipt_id}`} className="rounded-sm bg-ink px-4 py-2 text-sm font-semibold text-paper">
+              Open receipt
+            </Link>
+          ) : null}
+          <Link href="/" className="text-signal underline underline-offset-4">
+            Start a new mission
+          </Link>
+        </div>
       </div>
     );
   }

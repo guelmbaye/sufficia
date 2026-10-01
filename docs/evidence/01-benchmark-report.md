@@ -9,8 +9,8 @@
 | Engine version | `1.0.0` |
 | Benchmark version | `1.0.0` |
 | Fixture digest | `sha256:42985db11e1c51bd5f0a3b13fe835766b6d4a11cc663af519fd7890b788cc424` |
-| Date (UTC) | 2026-10-01T17:35:06.863238Z |
-| Commit | `a445e5face24d16aca745fbd15f0f6f1cbd9ce5f` |
+| Date (UTC) | 2026-10-01T18:14:07.311183Z |
+| Commit | `a36d59483e79c4abb30064f096d58f749d06a21a` |
 | Fixtures | `tests/benchmark` |
 | Total cases | 50 |
 

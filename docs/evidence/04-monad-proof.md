@@ -2,7 +2,7 @@
 
 > **LOCAL REHEARSAL — NOT MONAD.** This file was generated with `CHAIN_MODE=LOCAL_EVM`: the real EvidenceGate bytecode ran on an in-process py-evm chain. Regenerate on Monad testnet with `CHAIN_MODE=MONAD_TESTNET make evidence` after `make deploy-testnet` (see docs/deployment.md).
 
-Generated 2026-10-01T17:35:10.388810+00:00 · commit `a445e5face24d16aca745fbd15f0f6f1cbd9ce5f`
+Generated 2026-10-01T18:14:10.755101+00:00 · commit `a36d59483e79c4abb30064f096d58f749d06a21a`
 
 ## Network
 
@@ -14,27 +14,27 @@ Generated 2026-10-01T17:35:10.388810+00:00 · commit `a445e5face24d16aca745fbd15
 ## Successful protected execution (grand-prize-v1)
 
 - Evidence Contract hash: `0x7ed7409fed71e5a564460609d2823bfd7b0201e59af3c53c63e0b8068116838e`
-- Evidence root: `0x14695bc94b90dc38925c266cd8a9556ae5a150a60be156fee52f29e637dc82bc`
-- Decision: `AUTHORIZE` (`dec_a2896a99c2e652cf`)
-- Action hash: `0xb8c6d2852b45640c5b74e2570bd20f5b75bcde517b7f86a160ef89114704bf59`
-- Authorization id: `0xf6a39d922de6bb2b5671c972539d339492dfde7559c102b831748867ed121084` (expires 2026-10-01T17:35:38.905507Z)
-- Intent registration tx: `0x3470b45baa51a1cf70b60e442469cffa561ab897bbe8ceca70950ffb7b159f43`
-- Authorization tx: `0x5493526ebb90b07feb92daefecf10c5fcb23aef3a1688e80506398bb88865bb0` (block 14)
-- Execution tx: `0xdfbe4328e887e9a9c33376dfc1d49f7b650d2ec2d1e5fed643d0b328a21c50eb` (status EXECUTED)
-- Receipt hash: `0x28d67d9d17fb31d14bc472951bc9c9b6ea57059afd7b5475f86a946cac627ff7` · commitment tx: `0x1572b1f7239c031a29805227333dafca2255edc4681a807348ae376cd8694415` (CONFIRMED)
+- Evidence root: `0x65b17ba78f08f6aa4418c6686fc3ebbb61c1a048aee6cac9f66fec976593cf88`
+- Decision: `AUTHORIZE` (`dec_b5d352cbf14d47a3`)
+- Action hash: `0x984e1ea2684612828bbbc13d785b66eac3bab592d801282f5b6aa913e9bc56a6`
+- Authorization id: `0x69a17dfcea0f40d752c86b2a8b9991e9a8ca031df44fa2498a6cb375e216bbd6` (expires 2026-10-01T18:14:39.337327Z)
+- Intent registration tx: `0x32008817477bd89db912b69f8546107970c9d4b9c42075d6f9dc66b510bbfda2`
+- Authorization tx: `0x369c796e635e8ec1b176ae1fec4045d284d06d295e6a9a87551db855a3bef06c` (block 14)
+- Execution tx: `0xa15cd14e80c54be2b0da0651978d56a09d976d33442c55976c7f80eeb6523aae` (status EXECUTED)
+- Receipt hash: `0xa02d5043935d8ed785d4f7d71d55f4e58f8e6e550fd17f4f103c61e7452ae182` · commitment tx: `0xc4ec691e421af9c8b9c6d96b86097bb8698887c5f8c56e48127e402143c3652e` (CONFIRMED)
 
 ## EvidenceGate events (decoded from receipts)
 
-- INTENT_REGISTER `IntentRegistered` {"contractHash": "0x7ed7409fed71e5a564460609d2823bfd7b0201e59af3c53c63e0b8068116838e", "intentId": "0xd3d78ddbf92604deeed3583efe31b08375f93066e6c790445c9b8a66851a2198", "registeredAt": 1790876108}
-- AUTHORIZATION `ExecutionAuthorized` {"actionHash": "0xb8c6d2852b45640c5b74e2570bd20f5b75bcde517b7f86a160ef89114704bf59", "authorizationId": "0xf6a39d922de6bb2b5671c972539d339492dfde7559c102b831748867ed121084", "contractHash": "0x7ed7409fed71e5a564460609d2823bfd7b0201e59af3c53c63e0b8068116838e", "evidenceRoot": "0x14695bc94b90dc38925c266cd8a9556ae5a150a60be156fee52f29e637dc82bc", "executor": "0x5CbDd86a2FA8Dc4bDdd8a8f69dBa48572EeC07FB", "expiresAt": 1790876138, "intentId": "0xd3d78ddbf92604deeed3583efe31b08375f93066e6c790445c9b8a66851a2198"}
-- PROTECTED_EXECUTION `AuthorizationConsumed` {"actionHash": "0xb8c6d2852b45640c5b74e2570bd20f5b75bcde517b7f86a160ef89114704bf59", "authorizationId": "0xf6a39d922de6bb2b5671c972539d339492dfde7559c102b831748867ed121084", "executor": "0x5CbDd86a2FA8Dc4bDdd8a8f69dBa48572EeC07FB"}
-- PROTECTED_EXECUTION `ProtectedExecution` {"actionHash": "0xb8c6d2852b45640c5b74e2570bd20f5b75bcde517b7f86a160ef89114704bf59", "authorizationId": "0xf6a39d922de6bb2b5671c972539d339492dfde7559c102b831748867ed121084", "resultHash": "0xc17bc06792c2ffb20ca1334de224715d29c84cec91ac45e70473e3964c7e3628", "target": "0x7d73424a8256C0b2BA245e5d5a3De8820E45F390"}
-- RECEIPT_COMMITMENT `ReceiptCommitted` {"authorizationId": "0xf6a39d922de6bb2b5671c972539d339492dfde7559c102b831748867ed121084", "receiptHash": "0x28d67d9d17fb31d14bc472951bc9c9b6ea57059afd7b5475f86a946cac627ff7"}
+- INTENT_REGISTER `IntentRegistered` {"contractHash": "0x7ed7409fed71e5a564460609d2823bfd7b0201e59af3c53c63e0b8068116838e", "intentId": "0x8cb5e89cd98045a9192eada8fec0bfacaf152d4d67cae778bc79a4519bbeaccd", "registeredAt": 1790878449}
+- AUTHORIZATION `ExecutionAuthorized` {"actionHash": "0x984e1ea2684612828bbbc13d785b66eac3bab592d801282f5b6aa913e9bc56a6", "authorizationId": "0x69a17dfcea0f40d752c86b2a8b9991e9a8ca031df44fa2498a6cb375e216bbd6", "contractHash": "0x7ed7409fed71e5a564460609d2823bfd7b0201e59af3c53c63e0b8068116838e", "evidenceRoot": "0x65b17ba78f08f6aa4418c6686fc3ebbb61c1a048aee6cac9f66fec976593cf88", "executor": "0x5CbDd86a2FA8Dc4bDdd8a8f69dBa48572EeC07FB", "expiresAt": 1790878479, "intentId": "0x8cb5e89cd98045a9192eada8fec0bfacaf152d4d67cae778bc79a4519bbeaccd"}
+- PROTECTED_EXECUTION `AuthorizationConsumed` {"actionHash": "0x984e1ea2684612828bbbc13d785b66eac3bab592d801282f5b6aa913e9bc56a6", "authorizationId": "0x69a17dfcea0f40d752c86b2a8b9991e9a8ca031df44fa2498a6cb375e216bbd6", "executor": "0x5CbDd86a2FA8Dc4bDdd8a8f69dBa48572EeC07FB"}
+- PROTECTED_EXECUTION `ProtectedExecution` {"actionHash": "0x984e1ea2684612828bbbc13d785b66eac3bab592d801282f5b6aa913e9bc56a6", "authorizationId": "0x69a17dfcea0f40d752c86b2a8b9991e9a8ca031df44fa2498a6cb375e216bbd6", "resultHash": "0xc17bc06792c2ffb20ca1334de224715d29c84cec91ac45e70473e3964c7e3628", "target": "0x7d73424a8256C0b2BA245e5d5a3De8820E45F390"}
+- RECEIPT_COMMITMENT `ReceiptCommitted` {"authorizationId": "0x69a17dfcea0f40d752c86b2a8b9991e9a8ca031df44fa2498a6cb375e216bbd6", "receiptHash": "0xa02d5043935d8ed785d4f7d71d55f4e58f8e6e550fd17f4f103c61e7452ae182"}
 
 ## Blocked decision (no transaction)
 
-- Decision `dec_93f095c95b07bdcd`: **DENY** ['THRESHOLD_NOT_MET'] — Available liquidity is $92,440. The Evidence Contract requires more than $500,000. No execution authorization was issued. 100 USDC did not move.
-- Receipt `rcpt_b2b88f26e2a36745`: execution status `BLOCKED`, tx_hash `None`
+- Decision `dec_f62808eedcc502f7`: **DENY** ['THRESHOLD_NOT_MET'] — Available liquidity is $92,440. The Evidence Contract requires more than $500,000. No execution authorization was issued. 100 USDC did not move.
+- Receipt `rcpt_e4bded2d6ad1c973`: execution status `BLOCKED`, tx_hash `None`
 
 ## Replay
 

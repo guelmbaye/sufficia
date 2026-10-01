@@ -11,6 +11,7 @@ import { api } from "@/lib/api";
 import { actionVerb, formatDateTime, formatNumber, plainRequirement } from "@/lib/format";
 import { useLoad } from "@/lib/hooks";
 import { useRun } from "@/lib/run";
+import { executionNote } from "@/lib/states";
 
 /* Screen 02 — Evidence Contract (Document 05 §10-12): a clear promise, not developer JSON. */
 export default function ContractPage() {
@@ -98,6 +99,21 @@ export default function ContractPage() {
         </ul>
         {summary.unparsed.length ? (
           <p className="mt-3 text-sm text-hold">Not understood, so not enforced: {summary.unparsed.join("; ")}.</p>
+        ) : null}
+        {executionNote(data.execution) ? (
+          <p className="mt-3 text-sm text-hold" data-testid="not-executable">
+            Evidence can be checked, but this action will not execute: {executionNote(data.execution)}.
+          </p>
+        ) : null}
+        {data.spent_by ? (
+          <p className="mt-3 text-sm font-semibold text-allow">
+            This intent already executed once.{" "}
+            {data.spent_by.receipt_id ? (
+              <Link href={`/receipt/${data.spent_by.receipt_id}`} className="text-signal underline underline-offset-4">
+                Open receipt
+              </Link>
+            ) : null}
+          </p>
         ) : null}
         {summary.warnings?.length ? (
           <ul className="mt-3 space-y-1 text-sm text-hold">

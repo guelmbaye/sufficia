@@ -216,8 +216,11 @@ def preview_intent(request: Request, body: IntentPreview):
         compiled = compile_intent(intent, contract_id="preview", settings=app.settings, mode=body.mode)
     except IntentCompilationError as exc:
         raise ApiError(422, exc.code, str(exc), {"missing": exc.missing, "problems": exc.problems, "unparsed": exc.unparsed}) from exc
+    from ..execution.adapters import execution_capability
+
     return ok({"preview": True, "contract": compiled.contract, "contract_hash": compiled.contract_hash, "compiler": compiled.compiler,
-               "summary": compiled.summary, "preservation": compiled.preservation})
+               "summary": compiled.summary, "preservation": compiled.preservation,
+               "execution": execution_capability(app.settings.execution_adapter, compiled.contract, app.settings)})
 
 
 @core.get("/intents/{intent_id}")

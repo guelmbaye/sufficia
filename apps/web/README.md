@@ -64,5 +64,6 @@ src/components/receipt/  ReceiptTimeline, EvidenceTable, IntegrityPanel, ReplayP
 src/lib/                 typed API client, response types, formatting, decision-state vocabulary, run context
 tests/unit/              vitest: formatting, state vocabulary, run context, API client, proxy
 e2e/                     Playwright: Grand Prize flow (+ screenshots), test conditions, authority expiry, mission,
-                         proof drawer, phone width
+                         proof drawer, phone width, and interactions.spec.ts: every button, link, drawer, shortcut
+                         and copy action, double clicks, reloads, back/forward, spend-once and unsupported actions
 ```

@@ -7,7 +7,7 @@ import { Hash } from "@/components/Hash";
 import { StateIcon } from "@/components/StateIcon";
 import { formatAmount, formatCountdown, formatTime, withProviderLabels } from "@/lib/format";
 import { useCountdown } from "@/lib/hooks";
-import { chainLabel, consequence, DECISION_META, EXPIRED_AUTHORITY, TONE_CLASSES } from "@/lib/states";
+import { ALREADY_EXECUTED, chainLabel, consequence, DECISION_META, executionNote, EXPIRED_AUTHORITY, NOT_EXECUTABLE, TONE_CLASSES } from "@/lib/states";
 import type { AuthorizationView, ContractView, DecisionView } from "@/lib/types";
 
 import type { GateRow } from "./rows";
@@ -55,20 +55,34 @@ export const GatePanel = forwardRef<
   const ttl = Number(d?.authority_window?.ttl_seconds ?? contract.contract.authorization.ttl_seconds);
 
   const meta = d ? DECISION_META[d.state] : null;
-  const look = expired ? EXPIRED_AUTHORITY : meta;
+  const spent = executed ? null : (view?.spent_by ?? null);
+  const authorizeLike = d?.state === "AUTHORIZE" && !executed;
+  const alreadyDone = authorizeLike && Boolean(spent);
+  const cannotExecute = authorizeLike && !spent && view !== null && !view.execution.executable;
+  const look = alreadyDone ? ALREADY_EXECUTED : cannotExecute ? NOT_EXECUTABLE : expired ? EXPIRED_AUTHORITY : meta;
   const tone = TONE_CLASSES[look?.tone ?? "neutral"];
   const leadReason = d?.reasons.find((r) => r.code !== "ALL_REQUIREMENTS_SATISFIED") ?? d?.reasons[0];
   const headline = executed ? `Executed on ${chain.isMonad ? "Monad" : "the local EVM"}` : look?.headline;
-  const lead = expired
-    ? `Every requirement was satisfied at decision time, but the authority window closed at ${formatTime(expires)} UTC, before execution.`
-    : withProviderLabels(leadReason?.message ?? meta?.lead ?? "");
+  const lead = alreadyDone
+    ? `Every mandatory evidence requirement is satisfied, but this intent's ${amount} already moved once, under an earlier decision.`
+    : cannotExecute
+      ? `Every mandatory evidence requirement is satisfied, but ${executionNote(view?.execution)}.`
+      : expired
+        ? `Every requirement was satisfied at decision time, but the authority window closed at ${formatTime(expires)} UTC, before execution.`
+        : withProviderLabels(leadReason?.message ?? meta?.lead ?? "");
   const outcome = executed
     ? `${amount} moved through the EvidenceGate, once, under this authorization.`
-    : expired
-      ? `${amount} did not move. This authorization can no longer be used.`
-      : d
-        ? consequence(d.state, amount)
-        : "";
+    : alreadyDone
+      ? "This decision authorizes nothing new: an intent is spent at most once."
+      : spent
+        ? `This intent's ${amount} already moved once, under an earlier decision; this decision authorizes nothing new.`
+        : cannotExecute
+          ? `${amount} did not move. No authorization is issued.`
+        : expired
+          ? `${amount} did not move. This authorization can no longer be used.`
+          : d
+            ? consequence(d.state, amount)
+            : "";
   const executeLabel = `Execute on ${chain.isMonad ? "Monad" : chain.name}`;
 
   const present = rows.filter((r) => r.result?.checks.present).length;
@@ -134,7 +148,18 @@ export const GatePanel = forwardRef<
             </p>
           ) : null}
 
-          {d?.state === "AUTHORIZE" && !executed ? (
+          {authorizeLike && (alreadyDone || cannotExecute) ? (
+            <div className="flex flex-wrap items-center gap-4 text-sm">
+              {alreadyDone && spent?.receipt_id ? (
+                <Link href={`/receipt/${spent.receipt_id}`} className={primary}>
+                  Open receipt
+                </Link>
+              ) : null}
+              <Link href="/" className="text-signal underline underline-offset-4">
+                Start a new mission
+              </Link>
+            </div>
+          ) : authorizeLike ? (
             expired ? (
               <button type="button" onClick={onRefresh} disabled={busy} className={`w-full py-3 text-base ${primary}`}>
                 Refresh evidence

@@ -157,6 +157,13 @@ class ExecutionAdapter(ABC):
         settings: Any,
     ) -> CanonicalAction: ...
 
+    def unsupported(self, contract: EvidenceContract, settings: Any) -> Optional[AdapterError]:
+        """Why this adapter can never execute the contract's action (None when it can). Known before any
+        evidence is read, so the UI can say it up front instead of failing after AUTHORIZE."""
+        if contract.action.max_amount.currency.upper() != "USDC":
+            return AdapterError("UNSUPPORTED_CURRENCY", f"execution is denominated in USDC, got {contract.action.max_amount.currency}")
+        return None
+
     # -- shared checks ----------------------------------------------------------------------------
 
     @staticmethod
@@ -195,6 +202,17 @@ class DemoSwapAdapter(ExecutionAdapter):
     def __init__(self, supported_assets: Iterable[str] = TOKEN_X_ALIASES) -> None:
         self.supported_assets = frozenset(a.upper() for a in supported_assets)
 
+    def unsupported(self, contract: EvidenceContract, settings: Any) -> Optional[AdapterError]:
+        intent = contract.action
+        if intent.type != ActionType.BUY:
+            return AdapterError("UNSUPPORTED_ACTION", f"demo_swap only executes BUY actions, got {intent.type.value}")
+        if intent.asset.upper() not in self.supported_assets:
+            return AdapterError(
+                "UNSUPPORTED_ASSET",
+                f"demo_swap can only buy {', '.join(sorted(self.supported_assets))}, got {intent.asset}",
+            )
+        return super().unsupported(contract, settings)
+
     def prepare(
         self,
         *,
@@ -208,13 +226,9 @@ class DemoSwapAdapter(ExecutionAdapter):
     ) -> CanonicalAction:
         self._common_checks(contract, decision, chain, nonce, deadline)
         intent = contract.action
-        if intent.type != ActionType.BUY:
-            raise AdapterError("UNSUPPORTED_ACTION", f"demo_swap only executes BUY actions, got {intent.type.value}")
-        if intent.asset.upper() not in self.supported_assets:
-            raise AdapterError(
-                "UNSUPPORTED_ASSET",
-                f"demo_swap can only buy {', '.join(sorted(self.supported_assets))}, got {intent.asset}",
-            )
+        problem = self.unsupported(contract, settings)
+        if problem is not None:
+            raise problem
         gate = _checksum(chain.gate_address, "EvidenceGate")
         usdc = _checksum(chain.usdc_address, "USDC")
         token_x = _checksum(chain.token_x_address, "TOKEN-X")
@@ -281,6 +295,11 @@ class TransferAdapter(ExecutionAdapter):
     name = "transfer"
     label = "USDC transfer"
 
+    def unsupported(self, contract: EvidenceContract, settings: Any) -> Optional[AdapterError]:
+        if not getattr(settings, "execution_recipient", None):
+            return AdapterError("RECIPIENT_REQUIRED", "the transfer adapter needs EXECUTION_RECIPIENT")
+        return super().unsupported(contract, settings)
+
     def prepare(
         self,
         *,
@@ -296,9 +315,10 @@ class TransferAdapter(ExecutionAdapter):
         intent = contract.action
         gate = _checksum(chain.gate_address, "EvidenceGate")
         usdc = _checksum(chain.usdc_address, "USDC")
+        problem = self.unsupported(contract, settings)
+        if problem is not None:
+            raise problem
         configured = getattr(settings, "execution_recipient", None)
-        if not configured:
-            raise AdapterError("RECIPIENT_REQUIRED", "the transfer adapter needs EXECUTION_RECIPIENT")
         recipient = _checksum(configured, "execution recipient")
         if recipient.lower() == gate.lower():
             raise AdapterError("RECIPIENT_REQUIRED", "a transfer to the gate itself cannot move funds")
@@ -339,6 +359,22 @@ def get_adapter(name: str) -> ExecutionAdapter:
     if cls is None:
         raise AdapterError("UNKNOWN_ADAPTER", f"unknown execution adapter '{name}' (known: {', '.join(sorted(ADAPTERS))})")
     return cls()
+
+
+def execution_capability(adapter: ExecutionAdapter | str, contract: EvidenceContract, settings: Any) -> dict[str, Any]:
+    """{executable, adapter, code, message}: whether this server can ever execute the contract's action."""
+    try:
+        impl = get_adapter(adapter) if isinstance(adapter, str) else adapter
+    except AdapterError as exc:
+        return {"executable": False, "adapter": str(adapter), "code": exc.code, "message": str(exc)}
+    problem = impl.unsupported(contract, settings)
+    return {
+        "executable": problem is None,
+        "adapter": impl.name,
+        "label": impl.label,
+        "code": problem.code if problem else None,
+        "message": str(problem) if problem else None,
+    }
 
 
 def prepare_action(

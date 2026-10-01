@@ -75,8 +75,9 @@ function LiveGate() {
         setAuth({ kind: "idle" });
       } else if (dv.authorization && (dv.authorization.status === "ACTIVE" || dv.authorization.status === "CONSUMED")) {
         setAuth({ kind: "active", auth: dv.authorization });
-      } else if (!dv.executions.some((e) => e.status === "EXECUTED") && authorityLeft(dv) > 1000) {
-        // Publish only while authority remains: opening an old page must never write anything.
+      } else if (dv.can_execute && !dv.executions.some((e) => e.status === "EXECUTED") && authorityLeft(dv) > 1000) {
+        // Publish only an executable, unspent intent, and only while authority remains: opening an old
+        // page must never write anything.
         void publish(dv.decision.decision_id);
       } else {
         setAuth({ kind: "idle" });
@@ -164,7 +165,8 @@ function LiveGate() {
   }, [applyDecision, contractId, router, search, update]);
 
   const executed = Boolean(view?.executions.some((e) => e.status === "EXECUTED"));
-  const deadline = view?.decision.state === "AUTHORIZE" && !executed ? (auth.kind === "active" ? auth.auth.expires_at : view.authority?.expires_at) : null;
+  const deadline =
+    view?.decision.state === "AUTHORIZE" && view.can_execute && !executed ? (auth.kind === "active" ? auth.auth.expires_at : view.authority?.expires_at) : null;
   const expired = useDeadlinePassed(deadline);
   // Once authority has expired, no evidence row explains the gate any more: the connectors go quiet.
   const rows = useMemo(() => {

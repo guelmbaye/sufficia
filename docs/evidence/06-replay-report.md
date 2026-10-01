@@ -6,9 +6,9 @@
 |---|---|
 | Engine version | `1.0.0` |
 | Benchmark version | `1.0.0` |
-| Date (UTC) | 2026-10-01T17:35:06.863238Z |
-| Commit | `a445e5face24d16aca745fbd15f0f6f1cbd9ce5f` |
-| Cross-process replay | separate process (pid 1457, parent pid 1455) |
+| Date (UTC) | 2026-10-01T18:14:07.311183Z |
+| Commit | `a36d59483e79c4abb30064f096d58f749d06a21a` |
+| Cross-process replay | separate process (pid 2453, parent pid 2451) |
 
 ## Protocol
 

@@ -385,6 +385,9 @@ required was established, fresh, consistent and bound to that exact action.** It
 - **Centralized hackathon authorizer.** One backend key holds `AUTHORIZER_ROLE`. The contract independently enforces
   exact action binding, expiry, executor and single use, but a compromised authorizer could authorize a *different
   decision*. Production would use threshold signatures or a verifier network.
+- **One spend per intent is a backend rule.** The EvidenceGate consumes each authorization once; that an *intent*
+  ("buy up to 100 USDC") is spent at most once across its decisions is enforced by the API (`INTENT_ALREADY_EXECUTED`),
+  not yet by the contract.
 - **Limited Evidence Contract DSL.** Six claims (inflow, liquidity, price, listing, sanctions flag, venue), nine operators,
   per-requirement freshness/tolerance/minimum items. No arbitrary expressions, no cross-claim formulas.
 - **Single execution vertical.** One swap adapter (DemoSwapRouter) and one transfer adapter. Other venues need an adapter

@@ -88,6 +88,23 @@ export interface ContractSummary {
   fallback_reason?: string;
 }
 
+/** Whether this server's execution adapter can ever perform the contract's action. */
+export interface ExecutionCapability {
+  executable: boolean;
+  adapter: string;
+  label?: string;
+  code: string | null;
+  message: string | null;
+}
+
+/** The execution that already moved an intent's protected amount (an intent is spent at most once). */
+export interface SpentBy {
+  decision_id: string;
+  execution_id: string;
+  tx_hash: string | null;
+  receipt_id: string | null;
+}
+
 export interface ContractView {
   contract: EvidenceContract;
   contract_hash: string;
@@ -98,6 +115,8 @@ export interface ContractView {
   summary: ContractSummary;
   evidence_sets: { evidence_set_id: string; origin: string; created_at: string }[];
   decisions: { decision_id: string; state: DecisionState; evaluated_at: string }[];
+  execution: ExecutionCapability;
+  spent_by: SpentBy | null;
 }
 
 export interface ContractPreview {
@@ -107,6 +126,7 @@ export interface ContractPreview {
   compiler: string;
   summary: ContractSummary;
   preservation: Record<string, unknown>;
+  execution: ExecutionCapability;
 }
 
 export interface EvidencePayment {
@@ -356,6 +376,10 @@ export interface DecisionView {
   authorization: AuthorizationView | null;
   executions: ExecutionView[];
   receipts: { receipt_id: string; kind: string; created_at: string }[];
+  /** Set when another decision of the same intent already executed. */
+  spent_by: SpentBy | null;
+  execution: ExecutionCapability;
+  /** AUTHORIZE, intent not yet spent, and an action this server can execute. */
   can_execute: boolean;
 }
 

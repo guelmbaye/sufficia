@@ -4,7 +4,8 @@ import type { ContractView, DecisionView } from "@/lib/types";
 /** Left column: what the agent wants, what must be true, and what is at stake (Document 05 §77-78). */
 export function IntentColumn({ contract, decision }: { contract: ContractView; decision: DecisionView | null }) {
   const action = contract.contract.action;
-  const executed = decision?.executions.some((e) => e.status === "EXECUTED");
+  // this decision executed, or an earlier decision of the same intent did
+  const executed = Boolean(decision?.executions.some((e) => e.status === "EXECUTED") || decision?.spent_by);
   const cost = decision?.decision.evidence_cost_usd;
   const amount = formatAmount(action.max_amount.value, action.max_amount.currency);
 

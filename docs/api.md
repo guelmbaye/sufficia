@@ -35,9 +35,9 @@ curl -s -XPOST $B/receipts/$RID/replay | jq '{result, chain_verification}'   # M
 |---|---|---|
 | POST | `/api/v1/intents` | `{text, network?, protected_amount?, evidence_budget?}` → `201 {intent, intent_hash}` |
 | GET | `/api/v1/intents` · `/api/v1/intents/{id}` | |
-| POST | `/api/v1/intents/preview` | `{text, mode?}` — compiles without persisting (the "What must be true?" preview) |
+| POST | `/api/v1/intents/preview` | `{text, mode?}` — compiles without persisting (the "What must be true?" preview), with the same `execution` capability |
 | POST | `/api/v1/intents/{id}/compile` | `{mode?: deterministic\|llm\|auto, override?: EvidenceContract}` → frozen contract, `summary`, `preservation`. `409 CONTRACT_FROZEN` if already compiled, `422 INTENT_*` if not compilable, `422 INTENT_RELAXATION_REJECTED` for a weaker override |
-| GET | `/api/v1/contracts/{id}` | contract, hash, summary, preservation report, evidence sets, decisions |
+| GET | `/api/v1/contracts/{id}` | contract, hash, summary, preservation report, evidence sets, decisions, `execution` (`{executable, adapter, code, message}`: whether this server's adapter can ever perform the action, e.g. `UNSUPPORTED_ACTION` for a SELL with `demo_swap`) and `spent_by` (the execution that already moved this intent's amount, or null) |
 
 ### Evidence
 | Method | Path | Notes |
@@ -51,8 +51,8 @@ curl -s -XPOST $B/receipts/$RID/replay | jq '{result, chain_verification}'   # M
 |---|---|---|
 | POST | `/api/v1/contracts/{id}/verify` | dry run of the engine (no decision stored, no authority) |
 | POST | `/api/v1/contracts/{id}/decide` | `{evidence_set_id?}` → decision, `authority` window, `receipts` (a BLOCKED receipt is created for every non-AUTHORIZE decision). `409 EVIDENCE_NOT_ACQUIRED` |
-| GET | `/api/v1/decisions/{id}` | decision + authorization + executions + receipts |
-| POST | `/api/v1/decisions/{id}/authorize` | double guard (Document 04 §64) then `registerIntent` + `authorize` onchain. `403 EVIDENCE_AUTHORIZATION_REQUIRED` unless AUTHORIZE; `409 DECISION_INTEGRITY`, `409 ACTION_VERIFICATION_FAILED`, `403 AUTHORITY_EXPANSION`, `409 AUTHORIZATION_EXPIRED`, `502 CHAIN_TX_FAILED`, `504 CHAIN_TX_PENDING`. Idempotent. |
+| GET | `/api/v1/decisions/{id}` | decision + authorization + executions + receipts + `spent_by` + `execution`; `can_execute` = AUTHORIZE, intent not yet spent, action executable here |
+| POST | `/api/v1/decisions/{id}/authorize` | double guard (Document 04 §64) then `registerIntent` + `authorize` onchain. `403 EVIDENCE_AUTHORIZATION_REQUIRED` unless AUTHORIZE; `409 INTENT_ALREADY_EXECUTED` once another decision of the same intent executed (an intent is spent at most once; checked again before execution); `409 UNSUPPORTED_ACTION` / `UNSUPPORTED_ASSET` / `RECIPIENT_REQUIRED` when the adapter cannot perform it; `409 DECISION_INTEGRITY`, `409 ACTION_VERIFICATION_FAILED`, `403 AUTHORITY_EXPANSION`, `409 AUTHORIZATION_EXPIRED`, `502 CHAIN_TX_FAILED`, `504 CHAIN_TX_PENDING`. Idempotent. |
 | POST | `/api/v1/decisions/{id}/execute` | authorize (if needed) + execute. **403 for every non-AUTHORIZE decision.** |
 | GET | `/api/v1/authorizations/{id}` | stored state + live onchain state + transactions |
 | POST | `/api/v1/authorizations/{id}/execute` | reads onchain state first (exists, unconsumed, unexpired, executor, action hash) then `executeAuthorized`. The result lists the protected-execution and receipt-commitment transactions. `409 AUTHORIZATION_EXPIRED` (+ EXPIRED receipt, id in `detail.receipt_id`), `409 ACTION_HASH_MISMATCH`, `409 AUTHORIZATION_ALREADY_CONSUMED`, `409 EXECUTION_REVERTED` (+ FAILED receipt). Idempotent per authorization. |

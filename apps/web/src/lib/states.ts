@@ -96,6 +96,37 @@ export function rowStatus(result: RequirementResult | undefined): RowStatus {
   return result ? requirementStatus(result.status, result.reason_code) : "PENDING";
 }
 
+/** AUTHORIZE evidence on an intent whose protected amount already moved once. */
+export const ALREADY_EXECUTED = {
+  headline: "Already executed",
+  tone: "allow" as Tone,
+  icon: "allow" as IconName,
+};
+
+/** AUTHORIZE evidence for an action this server cannot execute (e.g. a SELL with the demo swap). */
+export const NOT_EXECUTABLE = {
+  headline: "Not executable here",
+  tone: "hold" as Tone,
+  icon: "conflict" as IconName,
+};
+
+/** Plain-words reason an action cannot be executed by this server, or null when it can. */
+export function executionNote(cap: { executable: boolean; code: string | null; message: string | null } | null | undefined): string | null {
+  if (!cap || cap.executable) return null;
+  switch (cap.code) {
+    case "UNSUPPORTED_ACTION":
+      return "this server's execution adapter only performs BUY actions";
+    case "UNSUPPORTED_ASSET":
+      return "this server's execution adapter can only buy TOKEN-X";
+    case "UNSUPPORTED_CURRENCY":
+      return "execution is denominated in USDC only";
+    case "RECIPIENT_REQUIRED":
+      return "transfers need EXECUTION_RECIPIENT configured on the server";
+    default:
+      return cap.message ?? "this server cannot execute it";
+  }
+}
+
 /** An AUTHORIZE decision whose authority window closed before execution (Document 05 §31). */
 export const EXPIRED_AUTHORITY = {
   headline: "Authorization expired",

@@ -89,7 +89,7 @@ from ..domain.models import (
 from ..evidence.acquisition import AcquisitionResult, acquire
 from ..evidence.base import AcquisitionContext, EvidenceBudget
 from ..evidence.planner import plan as plan_acquisition
-from ..execution.adapters import AdapterError, prepare_action, verify_spend
+from ..execution.adapters import AdapterError, execution_capability, prepare_action, verify_spend
 from ..intent import IntentCompilationError, compile_intent
 from . import audit
 from .errors import ApiError, authorization_required, not_found
@@ -405,7 +405,37 @@ class Sufficia:
                 "summary": loads(row.summary),
                 "evidence_sets": [{"evidence_set_id": i, "origin": o, "created_at": t} for i, o, t in sets],
                 "decisions": [{"decision_id": i, "state": st, "evaluated_at": t} for i, st, t in decisions],
+                "execution": execution_capability(self.settings.execution_adapter, contract, self.settings),
+                "spent_by": self._spent_by(s, contract_id),
             }
+
+    def _spent_by(self, s: Session, contract_id: str, *, other_than: Optional[str] = None) -> Optional[dict[str, Any]]:
+        """The execution that already moved this intent's protected amount, if any. An intent ("buy up to
+        100 USDC") is spent at most once: later AUTHORIZE decisions are evidence, not new authority."""
+        q = (
+            select(ExecutionRow)
+            .join(DecisionRow, DecisionRow.id == ExecutionRow.decision_id)
+            .where(DecisionRow.contract_id == contract_id, ExecutionRow.status == "EXECUTED")
+            .order_by(ExecutionRow.created_at)
+        )
+        if other_than is not None:
+            q = q.where(ExecutionRow.decision_id != other_than)
+        done = s.execute(q).scalars().first()
+        if done is None:
+            return None
+        rec = s.execute(select(ReceiptRow.id).where(ReceiptRow.execution_id == done.id)).scalar_one_or_none()
+        return {"decision_id": done.decision_id, "execution_id": done.id, "tx_hash": done.tx_hash, "receipt_id": rec}
+
+    def _refuse_if_spent(self, s: Session, contract_id: str, decision_id: str) -> None:
+        spent = self._spent_by(s, contract_id, other_than=decision_id)
+        if spent is not None:
+            self._audit("AUTHORIZATION_REFUSED", decision_id, {"reason": "INTENT_ALREADY_EXECUTED", **spent})
+            raise ApiError(
+                409,
+                "INTENT_ALREADY_EXECUTED",
+                "this intent's protected amount has already moved once; compile a new intent to act again",
+                spent,
+            )
 
     # =========================================================================================
     # Evidence
@@ -716,6 +746,9 @@ class Sufficia:
             executions = s.execute(
                 select(ExecutionRow).where(ExecutionRow.decision_id == decision_id).order_by(ExecutionRow.created_at)
             ).scalars().all()
+            spent_by = self._spent_by(s, row.contract_id, other_than=decision_id)
+            _, contract = self._contract(s, row.contract_id)
+            execution = execution_capability(self.settings.execution_adapter, contract, self.settings)
             window = None
             if decision.authority_window is not None:
                 remaining = (decision.authority_window.expires_at - self.rt.now()).total_seconds()
@@ -732,7 +765,9 @@ class Sufficia:
                 "authorization": self._auth_view(auth) if auth else None,
                 "executions": [self._exec_view(e) for e in executions],
                 "receipts": [{"receipt_id": i, "kind": k, "created_at": t} for i, k, t in receipts],
-                "can_execute": decision.state == DecisionState.AUTHORIZE,
+                "spent_by": spent_by,
+                "can_execute": decision.state == DecisionState.AUTHORIZE and spent_by is None and execution["executable"],
+                "execution": execution,
             }
 
     # =========================================================================================
@@ -773,6 +808,8 @@ class Sufficia:
             raise authorization_required(decision.state.value, decision_id)
         if existing is not None:
             return self._reconcile_authorization(existing.id)
+        with self.rt.db.session() as s:
+            self._refuse_if_spent(s, drow.contract_id, decision_id)
 
         # Double guard 1: the persisted inputs still replay to this exact decision.
         replayed = replay_snapshot(snapshot)
@@ -1023,10 +1060,12 @@ class Sufficia:
             with self.rt.db.session() as s:
                 row = s.get(AuthorizationRow, authorization_id)
         if row.status == AuthorizationStatus.EXPIRED.value:
-            self._expired_receipt(decision_id, None)
-            raise ApiError(409, "AUTHORIZATION_EXPIRED", "the authorization expired before execution")
+            receipt = self._expired_receipt(decision_id, None)
+            raise ApiError(409, "AUTHORIZATION_EXPIRED", "the authorization expired before execution", {"receipt_id": receipt})
         if row.status != AuthorizationStatus.ACTIVE.value:
             raise ApiError(409, "AUTHORIZATION_NOT_ACTIVE", f"authorization is {row.status}")
+        with self.rt.db.session() as s:
+            self._refuse_if_spent(s, s.get(DecisionRow, decision_id).contract_id, decision_id)
 
         gw = self.rt.gateway()
         info = gw.info

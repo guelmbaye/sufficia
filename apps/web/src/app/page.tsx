@@ -10,7 +10,7 @@ import { GRAND_PRIZE_INTENT } from "@/lib/constants";
 import { plainRequirement } from "@/lib/format";
 import { useSystem } from "@/lib/hooks";
 import { useRun } from "@/lib/run";
-import { chainLabel } from "@/lib/states";
+import { chainLabel, executionNote } from "@/lib/states";
 import type { ContractPreview } from "@/lib/types";
 
 /* Screen 01 — Mission (Document 05 §8-9): what should the agent do? Consequence before architecture. */
@@ -118,6 +118,11 @@ export default function MissionPage() {
                 {w}
               </span>
             ))}
+            {executionNote(preview?.execution) ? (
+              <span className="mt-1 block text-hold" data-testid="not-executable">
+                Evidence can be checked, but this action will not execute: {executionNote(preview?.execution)}.
+              </span>
+            ) : null}
           </p>
         ) : previewError ? (
           <p className="text-hold">{previewError.message}</p>
