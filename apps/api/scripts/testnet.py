@@ -49,10 +49,13 @@ ENV_PATH = API_ROOT / ".env"
 FAUCETS = ("https://faucet.monad.xyz", "https://faucet.quicknode.com/monad/testnet")
 
 
+READY_RUNS = 10  # the bar preflight marks OK: below it, status asks for a top-up
+
+
 class Context:
-    def __init__(self, w3: Web3, chain_id: int, env: dict[str, str], addresses: dict[str, str], explorer: str, deployed: bool, deployment_path: Optional[Path]):
+    def __init__(self, w3: Web3, chain_id: int, env: dict[str, str], addresses: dict[str, str], explorer: str, deployed: bool, deployment_path: Optional[Path], contracts: str):
         self.w3, self.chain_id, self.env, self.addresses = w3, chain_id, env, addresses
-        self.explorer, self.deployed, self.deployment_path = explorer, deployed, deployment_path
+        self.explorer, self.deployed, self.deployment_path, self.contracts = explorer, deployed, deployment_path, contracts
 
 
 def _connect(args: argparse.Namespace, out: Callable[[str], None], w3: Optional[Web3]) -> Optional[Context]:
@@ -83,17 +86,26 @@ def _connect(args: argparse.Namespace, out: Callable[[str], None], w3: Optional[
         out(f"the RPC serves chain {chain_id}, expected {expected} (Monad testnet is 10143); check MONAD_RPC_URL")
         return None
     path = find_deployment_file(None, env, "monad-testnet", repo_root=REPO_ROOT, api_root=API_ROOT)
-    deployed = False
+    deployed, contracts = False, "not deployed yet"
     if path is not None:
         from sufficia.blockchain.deploy import load_deployment
 
         try:
             deployment = load_deployment(path)
-            deployed = deployment.chain_id == chain_id and len(w3.eth.get_code(Web3.to_checksum_address(deployment.gate))) > 0
         except Exception:  # noqa: BLE001 - a broken file reads as "not deployed"; preflight explains it
-            deployed = False
+            deployment = None
+            contracts = f"unreadable deployment file {path}: deploy again"
+        if deployment is not None:
+            if deployment.chain_id != chain_id:
+                contracts = f"{path} is for chain {deployment.chain_id}: deploy again"
+            elif len(w3.eth.get_code(Web3.to_checksum_address(deployment.gate))) == 0:
+                contracts = f"no contract at the address in {path} (testnet reset?): deploy again"
+            elif deployment.authorizer.lower() != addresses["authorizer"].lower():
+                contracts = f"deployed for other wallets ({path}): deploy again for these"
+            else:
+                deployed, contracts = True, f"deployed ({path})"
     explorer = (env.get("MONAD_EXPLORER_URL") or MONAD_TESTNET_EXPLORER).rstrip("/")
-    return Context(w3, chain_id, env, addresses, explorer, deployed, path)
+    return Context(w3, chain_id, env, addresses, explorer, deployed, path, contracts)
 
 
 def _plan(ctx: Context, runs: int) -> tuple[dict[str, int], FundingPlan]:
@@ -145,8 +157,9 @@ def cmd_status(args: argparse.Namespace, out: Callable[[str], None], w3: Optiona
         return 2
     balances, plan = _plan(ctx, args.runs)
     out(f"Monad chain {ctx.chain_id}, gas price {plan.price / 1e9:.1f} gwei (charged on the gas limit)")
-    out(f"Contracts: {'deployed (' + str(ctx.deployment_path) + ')' if ctx.deployed else 'not deployed yet'}")
+    out(f"Contracts: {ctx.contracts}")
     out("")
+    runs_now = min(runs_affordable(balances[role], role, plan.price) for role in ("authorizer", "executor"))
     for role in ROLES:
         if role == "deployer":
             note = f"keeps {mon(plan.deployer_keep)} for {'the deployment and ' if not ctx.deployed else ''}a gate top-up"
@@ -159,11 +172,12 @@ def cmd_status(args: argparse.Namespace, out: Callable[[str], None], w3: Optiona
     out("")
 
     mode = (ctx.env.get("CHAIN_MODE") or "LOCAL_EVM").upper()
-    if plan.funded_runs == 0:
-        for line in _faucet_lines(ctx, plan.missing):
+    cannot_deploy = not ctx.deployed and balances["deployer"] < plan.deployer_keep
+    if cannot_deploy or (runs_now < 1 and plan.funded_runs == 0):
+        for line in _faucet_lines(ctx, max(plan.missing, plan.deployer_keep - balances["deployer"])):
             out(line)
         return 1
-    if plan.transfers:
+    if runs_now < READY_RUNS and plan.transfers:
         out(f"Next: python scripts/testnet.py distribute   (sends {mon(plan.total)} from the deployer, enough for {plan.funded_runs} runs)")
         if plan.missing:
             out(f"      or first add about {mon_rounded_up(plan.missing)} to the deployer for {plan.requested_runs} runs")
@@ -175,6 +189,8 @@ def cmd_status(args: argparse.Namespace, out: Callable[[str], None], w3: Optiona
     if mode != "MONAD_TESTNET":
         out("Next: python scripts/testnet.py mode monad    (then start the API)")
         return 0
+    if runs_now < READY_RUNS:
+        out(f"Low: about {runs_now} executed runs left. Get testnet MON for the deployer, then python scripts/testnet.py distribute")
     out("Ready: python scripts/preflight.py, then start the API (python -m uvicorn sufficia.api.app:app --port 8000) and the web app")
     return 0
 

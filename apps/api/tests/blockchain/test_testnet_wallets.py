@@ -62,6 +62,20 @@ def test_keys_are_created_once_and_never_replaced(tmp_path, clean_env):
     assert second.addresses == first.addresses and second.settings_written == []
 
 
+def test_a_comment_after_an_empty_value_is_not_a_value(tmp_path, clean_env, monkeypatch):
+    """Lines copied from .env.example (``KEY=     # comment``) count as unset, for the tools and for the API."""
+    env = tmp_path / ".env"
+    env.write_text("API_KEY=                 # when set, every POST needs X-API-Key\nDEPLOYER_PRIVATE_KEY=   # deploy script only\n", encoding="utf-8")
+    assert parse_env_file(env) == {"API_KEY": "", "DEPLOYER_PRIVATE_KEY": ""}
+    result = create_keys(env)
+    assert "deployer" in result.created and env.read_text(encoding="utf-8").count("DEPLOYER_PRIVATE_KEY=") == 1
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("API_KEY", raising=False)
+    from sufficia.config import Settings
+
+    assert Settings().api_key is None
+
+
 def test_an_invalid_key_stops_without_writing(tmp_path, clean_env):
     env = tmp_path / ".env"
     env.write_text("DEPLOYER_PRIVATE_KEY=0x1234\n", encoding="utf-8")
@@ -167,3 +181,27 @@ def test_status_then_distribute_from_the_deployer(tmp_path, clean_env):
     lines.clear()
     assert module.main(["status"], out=lines.append, w3=chain.w3) == 0
     assert lines[-2:] == ["Next: python scripts/preflight.py --no-deployment", "      python scripts/deploy.py --network monad-testnet"]
+
+
+@pytest.mark.evm
+def test_status_knows_whose_deployment_it_is(tmp_path, clean_env):
+    """A deployment made for other wallets (keys replaced) or erased by a reset is not "deployed" for these keys."""
+    from sufficia.blockchain.local_evm import LocalEvmChain
+
+    chain = LocalEvmChain()  # deployed for LOCAL_DEV_KEYS, each funded
+    target = tmp_path / "monad-testnet.json"
+    chain.deployment.save(target)
+    module = _script()
+    module.ENV_PATH = tmp_path / ".env"
+    keys = "".join(f"{KEY_VARS[r]}={LOCAL_DEV_KEYS[r]}\n" for r in ROLES)
+    module.ENV_PATH.write_text(f"MONAD_CHAIN_ID={chain.chain_id}\nDEPLOYMENT_FILE={target}\nCHAIN_MODE=MONAD_TESTNET\n{keys}", encoding="utf-8")
+    lines: list[str] = []
+    assert module.main(["status"], out=lines.append, w3=chain.w3) == 0
+    assert lines[1].startswith("Contracts: deployed (") and lines[-1].startswith("Ready:"), lines
+
+    other = Account.create().key.hex()
+    module.ENV_PATH.write_text(module.ENV_PATH.read_text(encoding="utf-8").replace(LOCAL_DEV_KEYS["authorizer"], "0x" + other.removeprefix("0x")), encoding="utf-8")
+    lines.clear()
+    module.main(["status"], out=lines.append, w3=chain.w3)
+    assert lines[1].startswith("Contracts: deployed for other wallets"), lines
+    assert not any(line.startswith("Ready:") for line in lines)

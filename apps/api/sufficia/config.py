@@ -11,7 +11,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Optional
 
-from pydantic import Field, field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .domain.enums import ChainMode
@@ -54,6 +54,14 @@ DEFAULT_SOURCES: dict[str, dict[str, list[str]]] = {
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore", case_sensitive=False)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _comment_is_not_a_value(cls, data: Any) -> Any:
+        """``KEY=    # comment`` in a .env file (as in .env.example) reads as the value "# comment": treat it as unset."""
+        if isinstance(data, dict):
+            return {k: v for k, v in data.items() if not (isinstance(v, str) and v.strip().startswith("#"))}
+        return data
 
     # ---- application --------------------------------------------------------------------------
     app_env: str = "development"

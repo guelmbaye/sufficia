@@ -13,7 +13,7 @@ from typing import Mapping, Optional
 
 
 def parse_env_file(path: Path) -> dict[str, str]:
-    """KEY=VALUE lines; ``#`` comments (full-line, or after whitespace in unquoted values); quotes stripped."""
+    """KEY=VALUE lines; ``#`` comments (full-line, after whitespace, or as the whole unquoted value); quotes stripped."""
     values: dict[str, str] = {}
     if not path.is_file():
         return values
@@ -27,6 +27,8 @@ def parse_env_file(path: Path) -> dict[str, str]:
         key, value = key.strip(), value.strip()
         if value[:1] in ('"', "'") and value.count(value[0]) >= 2:
             value = value[1 : value.index(value[0], 1)]
+        elif value.startswith("#"):  # KEY=    # comment  (as in .env.example): no value
+            value = ""
         else:
             for marker in (" #", "\t#"):
                 if marker in value:

@@ -88,6 +88,8 @@ def main(argv: Optional[Sequence[str]] = None, *, out: Callable[[str], None] = p
             deployment = load_deployment(path) if path else None
             if path:
                 checks.append(Check(OK, "deployment file", str(path)))
+                if not args.deployment and not env.get("DEPLOYMENT_FILE"):
+                    checks.append(Check(WARN, "DEPLOYMENT_FILE", "not set, so the API will not use this deployment: add DEPLOYMENT_FILE=../../deployments/monad-testnet.json to apps/api/.env"))
             elif not args.no_deployment:
                 checks.append(Check(WARN, "deployment file", "none yet: run scripts/deploy.py --network " + args.network))
         except ConfigurationError as exc:
