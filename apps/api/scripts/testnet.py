@@ -104,7 +104,7 @@ def _plan(ctx: Context, runs: int) -> tuple[dict[str, int], FundingPlan]:
 
 def _faucet_lines(ctx: Context, amount: int) -> list[str]:
     return [
-        f"Get about {mon_rounded_up(amount)} more testnet MON for the DEPLOYER address:",
+        f"The deployer needs about {mon_rounded_up(amount)} more. Get testnet MON for the DEPLOYER address:",
         f"    {ctx.addresses['deployer']}",
         "  faucets: " + "  ".join(FAUCETS),
         "  then run  python scripts/testnet.py status  again (the drip can take a minute to show).",
