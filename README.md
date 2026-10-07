@@ -27,9 +27,10 @@ On Windows without `make`, the same steps in PowerShell are in [docs/deployment.
 `make demo` runs the same Grand Prize scenario headless over HTTP.
 
 Without configuration the API runs the **demo profile on an in-process EVM that executes the real `EvidenceGate`
-bytecode** (`CHAIN_MODE=LOCAL_EVM`), and the web app says so in its header: *Local EVM rehearsal (not Monad)*. Point it
-at Monad testnet with `make preflight-testnet`, `make deploy-testnet` and `CHAIN_MODE=MONAD_TESTNET`: keys, MON
-amounts, costs and the full runbook are in [docs/deployment.md](docs/deployment.md#2-monad-testnet).
+bytecode** (`CHAIN_MODE=LOCAL_EVM`), and the web app says so in its header: *Local EVM rehearsal (not Monad)*. Moving
+to Monad testnet needs no account, only faucet MON: `scripts/testnet.py keys` creates the wallets, `status` says what
+is missing, `distribute` funds them from the deployer, then `scripts/preflight.py`, `scripts/deploy.py` and
+`scripts/testnet.py mode monad`. Costs and the full runbook: [docs/deployment.md](docs/deployment.md#2-monad-testnet).
 Every evidence card carries its source mode — `LIVE`, `RECORDED`, `SIMULATED` or `INJECTED` — and simulated things
 are never presented as live.
 

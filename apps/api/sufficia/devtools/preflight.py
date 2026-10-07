@@ -10,6 +10,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from decimal import Decimal
+from pathlib import Path
 from typing import Any, Mapping, Optional
 
 from eth_account import Account
@@ -113,7 +114,8 @@ def check_balances(w3: Web3, addresses: Mapping[str, str], *, deployed: bool) ->
         else:
             have = int(w3.eth.get_balance(deployer))
             level = OK if have >= need * 3 // 2 else FAIL if have < need else WARN
-            out.append(Check(level, "deployer balance", f"{_mon(have)}; the deployment needs about {_mon(need)} at today's gas price"))
+            hint = "" if level == OK else "; get testnet MON for the deployer (python scripts/testnet.py status says how much)"
+            out.append(Check(level, "deployer balance", f"{_mon(have)}; the deployment needs about {_mon(need)} at today's gas price{hint}"))
     for role, gas in RUN_GAS_LIMIT.items():
         address = addresses.get(role)
         if not address:
@@ -122,7 +124,8 @@ def check_balances(w3: Web3, addresses: Mapping[str, str], *, deployed: bool) ->
         per_run = gas * price
         runs = have // per_run if per_run else 0
         level = OK if runs >= 10 else WARN if runs >= 1 else FAIL
-        out.append(Check(level, f"{role} balance", f"{_mon(have)}, enough for about {runs} executed runs ({_mon(per_run)} each)"))
+        hint = "" if level == OK else "; send it MON from the deployer: python scripts/testnet.py distribute"
+        out.append(Check(level, f"{role} balance", f"{_mon(have)}, enough for about {runs} executed runs ({_mon(per_run)} each){hint}"))
     return out
 
 
@@ -201,6 +204,22 @@ def run_checks(
     if deployment is not None:
         checks += check_deployment(w3, deployment, addresses)
     return checks
+
+
+def find_deployment_file(arg: Optional[str], env: Mapping[str, str], network: str, *, repo_root: Path, api_root: Path) -> Optional[Path]:
+    """``arg``, else DEPLOYMENT_FILE, else deployments/<network>.json; relative paths from the current
+    directory, the repository root or apps/api. An explicit ``arg`` that does not exist raises FileNotFoundError."""
+    candidates = [arg] if arg else [env.get("DEPLOYMENT_FILE"), str(repo_root / "deployments" / f"{network}.json")]
+    for value in candidates:
+        if not value:
+            continue
+        path = Path(value).expanduser()
+        for base in ([path] if path.is_absolute() else [Path.cwd() / path, repo_root / path, api_root / path]):
+            if base.is_file():
+                return base.resolve()
+        if arg:
+            raise FileNotFoundError(f"deployment file not found: {value}")
+    return None
 
 
 def summarize(checks: list[Check]) -> dict[str, Any]:

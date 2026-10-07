@@ -13,7 +13,8 @@ export PYTHONPATH := $(CURDIR)/$(API_DIR)
 
 .PHONY: install install-py install-contracts contracts contracts-check test test-contracts benchmark integration \
         fixtures-check schemas schemas-check verify api demo evidence deploy-local deploy-testnet migrate live clean docker \
-        install-web web web-build web-check e2e screenshots preflight-testnet fund-gate
+        install-web web web-build web-check e2e screenshots preflight-testnet fund-gate \
+        testnet-keys testnet-status testnet-distribute
 
 install: install-py install-contracts install-web
 
@@ -88,6 +89,15 @@ deploy-local:
 
 deploy-testnet:
 	cd $(API_DIR) && $(PY) scripts/deploy.py --network monad-testnet
+
+testnet-keys:
+	cd $(API_DIR) && $(PY) scripts/testnet.py keys
+
+testnet-status:
+	cd $(API_DIR) && $(PY) scripts/testnet.py status
+
+testnet-distribute:
+	cd $(API_DIR) && $(PY) scripts/testnet.py distribute
 
 preflight-testnet:
 	cd $(API_DIR) && $(PY) scripts/preflight.py --network monad-testnet

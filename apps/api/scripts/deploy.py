@@ -240,6 +240,8 @@ def _run(args: argparse.Namespace, env: dict[str, str], out: Callable[[str], Non
     if args.network != "local":
         mode = "MONAD_MAINNET" if args.network == "monad-mainnet" else "MONAD_TESTNET"
         out(f"backend: CHAIN_MODE={mode} DEPLOYMENT_FILE={target}")
+        if args.network == "monad-testnet":
+            out("next:    python scripts/preflight.py, then python scripts/testnet.py mode monad and start the API")
     return 0
 
 

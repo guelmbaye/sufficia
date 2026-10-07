@@ -1,0 +1,4 @@
+# Nothing in this repository is meant to be served by Apache: the API runs on uvicorn and the web app on Next.js.
+# If the repository sits under a web server's document root (e.g. XAMPP htdocs), this keeps apps/api/.env (private
+# keys), the database and the sources private. Effective when AllowOverride permits it (XAMPP's default: All).
+Require all denied

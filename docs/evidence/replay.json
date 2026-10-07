@@ -3,8 +3,8 @@
   "report_version": 1,
   "engine_version": "1.0.0",
   "benchmark_version": "1.0.0",
-  "generated_at": "2026-10-07T06:23:43.312997Z",
-  "commit": "16d89fa5ce9a73e9b0ea5315fb4859ad89d0d343",
+  "generated_at": "2026-10-07T08:33:27.641387Z",
+  "commit": "18afeb643a6049e6b5cbee5a1ef9e26657750568",
   "protocol": [
     "evaluate the case",
     "persist the decision digest",
@@ -15,8 +15,8 @@
   ],
   "cross_process": {
     "enabled": true,
-    "pid": 1460,
-    "parent_pid": 1458
+    "pid": 828,
+    "parent_pid": 827
   },
   "attempted": 50,
   "replayed": 50,

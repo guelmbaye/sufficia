@@ -35,7 +35,7 @@ from sufficia.blockchain.deploy import (  # noqa: E402
 )
 from sufficia.blockchain.web3_gateway import ConfigurationError, http_providers  # noqa: E402
 from sufficia.devtools.envfile import tool_env  # noqa: E402
-from sufficia.devtools.preflight import FAIL, OK, WARN, Check, run_checks, summarize  # noqa: E402
+from sufficia.devtools.preflight import FAIL, OK, WARN, Check, find_deployment_file, run_checks, summarize  # noqa: E402
 
 REPO_ROOT = API_ROOT.parents[1]
 NETWORKS = {
@@ -45,17 +45,10 @@ NETWORKS = {
 
 
 def _deployment_path(arg: Optional[str], env: dict[str, str], network: str) -> Optional[Path]:
-    candidates = [arg] if arg else [env.get("DEPLOYMENT_FILE"), str(REPO_ROOT / "deployments" / f"{network}.json")]
-    for value in candidates:
-        if not value:
-            continue
-        path = Path(value).expanduser()
-        for base in ([path] if path.is_absolute() else [Path.cwd() / path, REPO_ROOT / path, API_ROOT / path]):
-            if base.is_file():
-                return base
-        if arg:  # an explicit path that does not exist is an error, a default one is not
-            raise ConfigurationError(f"deployment file not found: {value}")
-    return None
+    try:  # an explicit path that does not exist is an error, a default one is not
+        return find_deployment_file(arg, env, network, repo_root=REPO_ROOT, api_root=API_ROOT)
+    except FileNotFoundError as exc:
+        raise ConfigurationError(str(exc)) from None
 
 
 def main(argv: Optional[Sequence[str]] = None, *, out: Callable[[str], None] = print) -> int:

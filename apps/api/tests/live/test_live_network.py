@@ -2,7 +2,7 @@
 
 Deselected by default (`-m "not live"` in pyproject). Run before a demo / submission:
 
-    SUFFICIA_LIVE=1 MONAD_RPC_URL=... python -m pytest -m live tests/live -v
+    SUFFICIA_LIVE=1 python -m pytest -m live tests/live -v      (from apps/api; reads apps/api/.env like the API)
 
 Each test skips itself when its prerequisites (network, keys, deployment) are absent, so a provider
 outage can never turn the hermetic benchmark red.
@@ -20,6 +20,8 @@ from sufficia.config import Settings
 pytestmark = pytest.mark.live
 
 LIVE = os.environ.get("SUFFICIA_LIVE") == "1"
+CONFIGURED = Settings()  # the process environment over apps/api/.env, exactly as the API sees it
+ON_MONAD_TESTNET = getattr(CONFIGURED.chain_mode, "value", str(CONFIGURED.chain_mode)).upper() == "MONAD_TESTNET"
 
 
 def _settings() -> Settings:
@@ -41,12 +43,11 @@ def test_x402_facilitator_supported_kinds():
     assert "eip155:10143" in r.text or "monad" in r.text.lower()
 
 
-@pytest.mark.skipif(not (LIVE and os.environ.get("NANSEN_API_KEY") and os.environ.get("ASSET_TOKEN_ADDRESS")),
+@pytest.mark.skipif(not (LIVE and CONFIGURED.nansen_api_key and CONFIGURED.asset_token_address),
                     reason="needs SUFFICIA_LIVE=1, NANSEN_API_KEY and ASSET_TOKEN_ADDRESS")
 def test_nansen_smart_money_netflow_is_normalized():
     import asyncio
 
-    from sufficia.domain.models import EvidenceContract
     from sufficia.evidence.adapters.nansen import NansenSmartMoneyAdapter
     from sufficia.evidence.base import AcquisitionContext, EvidenceBudget
     from sufficia.intent import compile_intent
@@ -67,7 +68,7 @@ def test_nansen_smart_money_netflow_is_normalized():
     assert raw.unit == "USD" and raw.provider == "nansen"
 
 
-@pytest.mark.skipif(not (LIVE and os.environ.get("CHAIN_MODE", "").upper() == "MONAD_TESTNET"),
+@pytest.mark.skipif(not (LIVE and ON_MONAD_TESTNET),
                     reason="needs SUFFICIA_LIVE=1 and a CHAIN_MODE=MONAD_TESTNET deployment")
 def test_grand_prize_on_monad_testnet():
     """Full DENY -> AUTHORIZE -> protected execution -> receipt -> replay against the deployed EvidenceGate."""
