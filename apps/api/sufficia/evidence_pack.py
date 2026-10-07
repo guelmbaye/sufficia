@@ -18,7 +18,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from . import __version__
 from .config import API_ROOT, REPO_ROOT, Settings
@@ -188,6 +188,26 @@ def write_security(out: Path, commit: str, tmp: Path) -> dict[str, Any]:
     return {"invariants": len(rows), "passing": sum(r[4] for r in rows), "ok": all_ok}
 
 
+def _forge_results() -> Optional[dict[str, Any]]:
+    """Runs the Foundry suite when ``forge`` is available (FORGE_SOLC may point at a local solc binary).
+    Returns {"passed", "failed", "total", "version"} or None when forge is not installed."""
+    import re
+    import shutil
+
+    forge = os.environ.get("FORGE") or shutil.which("forge")
+    if not forge:
+        return None
+    cmd = [forge, "test", "--offline"]
+    if os.environ.get("FORGE_SOLC"):
+        cmd += ["--use", os.environ["FORGE_SOLC"]]
+    proc = subprocess.run(cmd, cwd=REPO_ROOT / "contracts", capture_output=True, text=True, encoding="utf-8", errors="replace")
+    m = re.search(r"(\d+) tests passed, (\d+) failed, (\d+) skipped \((\d+) total tests\)", proc.stdout)
+    version = subprocess.run([forge, "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace").stdout.splitlines()
+    if not m:
+        return {"passed": 0, "failed": None, "total": None, "version": version[0] if version else "forge", "error": proc.stdout[-400:] + proc.stderr[-400:]}
+    return {"passed": int(m.group(1)), "failed": int(m.group(2)), "total": int(m.group(4)), "version": version[0] if version else "forge"}
+
+
 def write_contracts(out: Path, commit: str, tmp: Path, deployment: dict[str, Any]) -> dict[str, Any]:
     _pytest(["tests/contracts", "tests/blockchain"], tmp / "contracts.xml")
     c_all = _counts(tmp / "contracts.xml")
@@ -197,6 +217,7 @@ def write_contracts(out: Path, commit: str, tmp: Path, deployment: dict[str, Any
     sol = (REPO_ROOT / "contracts" / "test" / "EvidenceGate.t.sol").read_text(encoding="utf-8")
     foundry_tests = sol.count("function test")
     fuzz = sol.count("function testFuzz")
+    forge = _forge_results()
     lines = [
         "# 03 — Smart contract tests",
         "",
@@ -212,11 +233,17 @@ def write_contracts(out: Path, commit: str, tmp: Path, deployment: dict[str, Any
         "",
         "## Foundry suite",
         "",
-        "`cd contracts && forge test -vv` (Foundry) · compile-checked in CI with `npm run check:foundry`",
+        "`cd contracts && forge test` (Foundry; runs in CI)",
         "",
-        f"- `contracts/test/EvidenceGate.t.sol`: {foundry_tests} test functions, of which {fuzz} fuzz tests.",
-        "- In this build environment Foundry binaries cannot be downloaded, so the Foundry suite is compile-checked with solcjs;",
-        "  the same scenarios are executed against the compiled bytecode by the py-evm suite above.",
+        f"- `contracts/test/EvidenceGate.t.sol`: {foundry_tests} test functions, of which {fuzz} fuzz tests (256 runs each).",
+        *(
+            [f"- Executed with {forge['version']}: **{forge['passed']}/{forge['total']} passed**, {forge['failed']} failed."]
+            if forge and forge.get("total")
+            else [f"- forge was found but did not report results: `{(forge or {}).get('error', '').strip()[:200]}`"]
+            if forge
+            else ["- forge is not installed where this pack was generated: the suite was compile-checked with solcjs, and the same",
+                  "  scenarios run against the compiled bytecode in the py-evm suite above."]
+        ),
         "",
         "## Compiler",
         "",
@@ -288,7 +315,11 @@ def write_monad(out: Path, commit: str, p: dict[str, Any]) -> None:
         f"- Mode: `{info['mode']}` · network: {info['network']} · chain id: `{info['chain_id']}`",
         f"- EvidenceGate: `{info['evidence_gate']}`",
         f"- Authorizer: `{info['authorizer']}` · Executor: `{info['executor']}`",
-        f"- Deployment: `{json.dumps(info.get('deployment', {}).get('txs', {}))}`" if info.get("deployment") else "- Deployment: see deployments/",
+        *(
+            ["- Deployment transactions:"] + [f"  - {step}: {link(h)}" for step, h in (info.get("deployment") or {}).get("txs", {}).items()]
+            if (info.get("deployment") or {}).get("txs")
+            else ["- Deployment: see deployments/"]
+        ),
         "", "## Successful protected execution (grand-prize-v1)", "",
         f"- Evidence Contract hash: `{rc['contract_hash']}`",
         f"- Evidence root: `{rc['evidence_root']}`",

@@ -1,7 +1,7 @@
 # 02 — Security invariants
 
-Generated 2026-10-01T18:14:25.223121+00:00 by `python -m sufficia.evidence_pack` from a pytest run (JUnit XML).
-Commit: `a36d59483e79c4abb30064f096d58f749d06a21a` · SUFFICIA 1.0.0
+Generated 2026-10-07T06:24:03.953860+00:00 by `python -m sufficia.evidence_pack` from a pytest run (JUnit XML).
+Commit: `16d89fa5ce9a73e9b0ea5315fb4859ad89d0d343` · SUFFICIA 1.0.0
 
 **Result: 15/15 invariants PASS** (46/46 mapped tests passing).
 

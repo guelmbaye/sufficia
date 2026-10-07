@@ -15,7 +15,9 @@ Environment:
     EXECUTOR / EXECUTOR_ADDRESS   the executor recorded in the deployment; or EXECUTOR_PRIVATE_KEY
     PAUSER / PAUSER_ADDRESS  PAUSER_ROLE holder; or PAUSER_PRIVATE_KEY; defaults to the deployer
     MONAD_RPC_URL            default RPC when --rpc is not given (Monad networks)
-    GATE_USDC_FUNDING        dUSDC base units minted to the gate (default 1_000 USDC)
+    (each variable may also be written in apps/api/.env; the process environment wins)
+    GATE_USDC_FUNDING        dUSDC base units minted to the gate (default 100_000 dUSDC on Monad = 1,000 Grand Prize
+                             executions of 100 USDC; 1_000 dUSDC for --network local). Top up later: scripts/fund_gate.py
     ROUTER_TOKENX_RESERVE    TOKEN-X base units minted to the router (default 1_000_000 TOKEN-X)
 
 Private keys are read from the environment only (never from the command line) and never printed.
@@ -25,7 +27,6 @@ Exit codes: 0 success, 2 configuration error, 3 RPC unreachable / wrong chain, 4
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 from pathlib import Path
 from typing import Callable, Optional, Sequence
@@ -50,9 +51,11 @@ from sufficia.blockchain.deploy import (  # noqa: E402
 )
 from sufficia.blockchain.gateway import ChainUnavailable  # noqa: E402
 from sufficia.blockchain.web3_gateway import ConfigurationError, FailoverProvider, http_providers  # noqa: E402
+from sufficia.devtools.envfile import tool_env  # noqa: E402
 
 REPO_ROOT = API_ROOT.parents[1]
 DEPLOYMENTS_DIR = REPO_ROOT / "deployments"
+MONAD_DEMO_GATE_FUNDING = 100_000 * 10**6  # demo dUSDC (6 decimals): each Grand Prize execution spends 100
 
 NETWORKS = {
     "monad-testnet": {"chain_id": MONAD_TESTNET_CHAIN_ID, "rpc": MONAD_TESTNET_RPC, "explorer": MONAD_TESTNET_EXPLORER},
@@ -119,7 +122,7 @@ def main(argv: Optional[Sequence[str]] = None, *, env: Optional[dict[str, str]] 
     parser.add_argument("--timeout", type=float, default=180.0, help="per-transaction confirmation timeout (s)")
     parser.add_argument("--yes-mainnet", action="store_true", help="required to deploy on Monad mainnet")
     args = parser.parse_args(argv)
-    env = dict(os.environ if env is None else env)
+    env = tool_env(API_ROOT) if env is None else dict(env)
 
     try:
         return _run(args, env, out)
@@ -208,7 +211,7 @@ def _run(args: argparse.Namespace, env: dict[str, str], out: Callable[[str], Non
         pauser=pauser,
         executor=executor,
         existing_usdc=args.usdc,
-        gate_usdc_funding=_int_env(env, "GATE_USDC_FUNDING"),
+        gate_usdc_funding=_int_env(env, "GATE_USDC_FUNDING") or (None if local_chain or args.usdc else MONAD_DEMO_GATE_FUNDING),
         router_tokenx_reserve=_int_env(env, "ROUTER_TOKENX_RESERVE"),
         network=args.network,
         tx_timeout=args.timeout,

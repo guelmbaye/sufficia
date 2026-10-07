@@ -1,21 +1,20 @@
 # 03 — Smart contract tests
 
-Generated 2026-10-01T18:15:29.006855+00:00 · commit `a36d59483e79c4abb30064f096d58f749d06a21a`
+Generated 2026-10-07T06:25:20.204703+00:00 · commit `16d89fa5ce9a73e9b0ea5315fb4859ad89d0d343`
 
 ## Executed EVM tests (py-evm, real EvidenceGate bytecode)
 
 `cd apps/api && python -m pytest tests/contracts tests/blockchain`
 
 - EvidenceGate contract suite (`tests/contracts`): **216/216 passed** (includes 4 seeded fuzz properties × 40 runs: action-hash parity, calldata/amount sensitivity, authorization-id parity)
-- Contract + chain-gateway lifecycle suites combined: **287/287 passed**, 0 failed
+- Contract + chain-gateway lifecycle suites combined: **293/293 passed**, 0 failed
 
 ## Foundry suite
 
-`cd contracts && forge test -vv` (Foundry) · compile-checked in CI with `npm run check:foundry`
+`cd contracts && forge test` (Foundry; runs in CI)
 
-- `contracts/test/EvidenceGate.t.sol`: 30 test functions, of which 3 fuzz tests.
-- In this build environment Foundry binaries cannot be downloaded, so the Foundry suite is compile-checked with solcjs;
-  the same scenarios are executed against the compiled bytecode by the py-evm suite above.
+- `contracts/test/EvidenceGate.t.sol`: 30 test functions, of which 3 fuzz tests (256 runs each).
+- Executed with forge Version: 1.5.1-stable: **30/30 passed**, 0 failed.
 
 ## Compiler
 
