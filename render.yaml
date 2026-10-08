@@ -1,0 +1,68 @@
+# Render Blueprint: the SUFFICIA API and web app on Monad testnet, free instances.
+# Render dashboard > New > Blueprint > this repository. Render then asks for the values marked
+# `sync: false`: the three testnet keys from apps/api/.env and the API's public URL (see docs/deployment.md §5).
+# The deployer key never goes on the server: deploying and topping up the gate stay on your computer.
+services:
+  - type: web
+    name: sufficia-api
+    runtime: python
+    plan: free
+    region: frankfurt
+    # No rootDir: the API reads demo/scenarios, docs/evidence and deployments/ at the repository root.
+    buildCommand: pip install -e apps/api
+    startCommand: cd apps/api && uvicorn sufficia.api.app:app --host 0.0.0.0 --port $PORT --workers 1
+    healthCheckPath: /health
+    buildFilter:
+      ignoredPaths:
+        - apps/web/**
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: CHAIN_MODE
+        value: MONAD_TESTNET
+      - key: MONAD_RPC_URL
+        value: https://testnet-rpc.monad.xyz
+      - key: MONAD_RPC_FALLBACK_URL
+        value: https://rpc.ankr.com/monad_testnet
+      - key: MONAD_CHAIN_ID
+        value: "10143"
+      - key: MONAD_EXPLORER_URL
+        value: https://testnet.monadvision.com
+      - key: DEPLOYMENT_FILE
+        value: ../../deployments/monad-testnet.json
+      - key: DEMO_MODE
+        value: "true"
+      - key: RATE_LIMIT_PER_MINUTE  # every viewer reaches the API through the web server's address
+        value: "600"
+      - key: API_KEY  # only the web app (same value, below) may send mutating requests
+        generateValue: true
+      - key: AUTHORIZER_PRIVATE_KEY
+        sync: false
+      - key: EXECUTOR_PRIVATE_KEY
+        sync: false
+      - key: PAUSER_PRIVATE_KEY
+        sync: false
+
+  - type: web
+    name: sufficia-web
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: apps/web
+    buildCommand: npm ci && npm run build
+    startCommand: npx next start --hostname 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      - key: SUFFICIA_API_URL  # the API's public address, e.g. https://sufficia-api.onrender.com
+        sync: false
+      - key: SUFFICIA_API_KEY
+        fromService:
+          type: web
+          name: sufficia-api
+          envVarKey: API_KEY
+      - key: SUFFICIA_API_TIMEOUT_MS  # a sleeping free API takes about a minute to answer
+        value: "120000"

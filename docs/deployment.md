@@ -161,3 +161,25 @@ To capture genuine provider responses for the `recorded` profile: `python apps/a
   size `RATE_LIMIT_PER_MINUTE` for the whole audience (the E2E suite sets it to 0).
 - `EvidenceGate` is immutable (no proxy); rotate the authorizer with `grantRole`/`revokeRole`; `pause()` stops new
   authorizations and executions while receipts can still be committed.
+
+## 5. Live demo on Render
+
+`render.yaml` describes two free Render services: the API (`sufficia-api`, in `MONAD_TESTNET` mode) and the web
+app (`sufficia-web`). The API keeps the whole repository (it reads `demo/scenarios`, `docs/evidence` and
+`deployments/`); the web app builds from `apps/web` alone.
+
+1. Deploy on Monad testnet first (section 2) and push `deployments/monad-testnet.json`: the API reads it from the
+   repository.
+2. Render dashboard → New → Blueprint → this repository. Render asks for the values marked `sync: false`:
+   - `AUTHORIZER_PRIVATE_KEY`, `EXECUTOR_PRIVATE_KEY`, `PAUSER_PRIVATE_KEY`: the values in your `apps/api/.env`.
+     The deployer key never goes on the server; deploying and `scripts/fund_gate.py` stay on your computer.
+   - `SUFFICIA_API_URL`: the API's public URL, `https://sufficia-api.onrender.com` unless Render assigns another
+     one (then correct it in the web service's Environment tab and redeploy the web service).
+   `API_KEY` is generated on the API and passed to the web app, so only the web app can send mutating requests.
+3. When both services are live, open `https://<web service>.onrender.com/demo`.
+
+Free instances sleep after 15 minutes without traffic and take about a minute to wake, so a first visit can wait up
+to about two minutes while both services wake (the web proxy waits up to `SUFFICIA_API_TIMEOUT_MS`, 120 s here).
+Their filesystem is ephemeral: runs and receipts reset when the API sleeps or redeploys. Each executed run costs
+about 0.053 MON from the authorizer and the executor: run `python scripts/testnet.py status` regularly while the demo
+is public, and `distribute` after a faucet top-up.

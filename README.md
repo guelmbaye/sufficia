@@ -23,6 +23,7 @@ make e2e              # browser end-to-end tests against the real stack; writes 
 ```
 
 Or everything in containers: `docker compose up --build` → web app on `:3000`, API on `:8000`.
+A public demo on Monad testnet deploys to Render from `render.yaml` ([docs/deployment.md](docs/deployment.md#5-live-demo-on-render)).
 On Windows without `make`, the same steps in PowerShell are in [docs/deployment.md](docs/deployment.md#windows-powershell-no-make-no-c-compiler).
 `make demo` runs the same Grand Prize scenario headless over HTTP.
 

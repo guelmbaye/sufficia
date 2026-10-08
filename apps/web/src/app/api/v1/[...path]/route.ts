@@ -15,6 +15,12 @@ function apiBase(): string {
   return (process.env.SUFFICIA_API_URL ?? "http://127.0.0.1:8000").replace(/\/+$/, "");
 }
 
+/* A hosted API on a free plan may be asleep: its first answer can take about a minute. */
+function apiTimeoutMs(): number {
+  const value = Number(process.env.SUFFICIA_API_TIMEOUT_MS);
+  return Number.isFinite(value) && value > 0 ? value : 60_000;
+}
+
 async function proxy(req: Request, ctx: { params: Promise<{ path: string[] }> }): Promise<Response> {
   const { path } = await ctx.params;
   const incoming = new URL(req.url);
@@ -37,11 +43,11 @@ async function proxy(req: Request, ctx: { params: Promise<{ path: string[] }> })
       body: hasBody ? await req.arrayBuffer() : undefined,
       cache: "no-store",
       redirect: "manual",
-      signal: AbortSignal.timeout(60_000),
+      signal: AbortSignal.timeout(apiTimeoutMs()),
     });
   } catch {
     return Response.json(
-      { error: { code: "API_UNREACHABLE", message: "The SUFFICIA API cannot be reached from the web server. Start it with `make api`." } },
+      { error: { code: "API_UNREACHABLE", message: "The SUFFICIA API cannot be reached from the web server." } },
       { status: 502, headers: { "cache-control": "no-store" } },
     );
   }

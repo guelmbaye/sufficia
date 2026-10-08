@@ -51,7 +51,7 @@ export function createClient(base = "/api/v1", fetcher: Fetcher = (...a) => fetc
         cache: "no-store",
       });
     } catch {
-      throw new ApiError(0, "API_UNREACHABLE", "The SUFFICIA API cannot be reached. Start it with `make api`.");
+      throw new ApiError(0, "API_UNREACHABLE", "The SUFFICIA API cannot be reached.");
     }
     const text = await res.text();
     let data: unknown = null;

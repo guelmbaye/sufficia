@@ -5,7 +5,7 @@ export function ErrorNote({ error, className = "" }: { error: ApiError | null; c
   if (!error) return null;
   const hint =
     error.code === "API_UNREACHABLE"
-      ? "Start the API with `make api`, then reload."
+      ? "A hosted demo may be waking up: reload in a minute. Running locally: start the API with `make api`."
       : error.code === "CHAIN_UNAVAILABLE" || error.code === "CHAIN_DISABLED"
         ? "Protected execution needs a chain: check CHAIN_MODE and the deployment."
         : error.code === "DEMO_DISABLED"
