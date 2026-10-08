@@ -73,7 +73,7 @@ def test_a_comment_after_an_empty_value_is_not_a_value(tmp_path, clean_env, monk
     monkeypatch.delenv("API_KEY", raising=False)
     from sufficia.config import Settings
 
-    assert Settings().api_key is None
+    assert not Settings().api_key  # None, or "" with pydantic-settings >= 2.15 (it strips the comment itself)
 
 
 def test_an_invalid_key_stops_without_writing(tmp_path, clean_env):
