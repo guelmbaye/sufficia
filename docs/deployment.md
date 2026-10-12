@@ -183,3 +183,42 @@ to about two minutes while both services wake (the web proxy waits up to `SUFFIC
 Their filesystem is ephemeral: runs and receipts reset when the API sleeps or redeploys. Each executed run costs
 about 0.053 MON from the authorizer and the executor: run `python scripts/testnet.py status` regularly while the demo
 is public, and `distribute` after a faucet top-up.
+
+## 6. Your own server (Docker, behind a reverse proxy)
+
+`docker-compose.prod.yml` runs the same two images as `docker-compose.yml` on a server that already has a reverse
+proxy (Nginx, Caddy, Traefik) in a Docker network called `proxy-network`. No port is published on the host: the proxy
+reaches `sufficia-web:3000` and, if you expose it, `sufficia-api:8000`. CI builds and starts this exact file.
+
+1. Deploy on Monad testnet first (section 2). `deployments/monad-testnet.json` is in the repository and is mounted
+   read-only into the API.
+2. On the server, clone the repository and write `.env` at its root (`chmod 600`, never committed):
+
+   ```bash
+   API_KEY=<openssl rand -hex 32>        # the web app sends it; mutating requests without it get 401
+   AUTHORIZER_PRIVATE_KEY=...            # the three values from your apps/api/.env
+   EXECUTOR_PRIVATE_KEY=...
+   PAUSER_PRIVATE_KEY=...
+   MONAD_RPC_FALLBACK_URL=https://rpc.ankr.com/monad_testnet
+   RATE_LIMIT_PER_MINUTE=600             # every viewer reaches the API through the web container's address
+   CORS_ORIGINS=https://<web domain>
+   APP_ENV=production
+   ```
+
+   The deployer key stays on your computer. `CHAIN_MODE` defaults to `MONAD_TESTNET` and the RPC, chain id and
+   explorer default to the testnet ones.
+3. Start it:
+
+   ```bash
+   docker network create proxy-network 2>/dev/null || true
+   docker network create sufficia-network 2>/dev/null || true
+   docker compose -f docker-compose.prod.yml up -d --build
+   docker compose -f docker-compose.prod.yml exec api python scripts/preflight.py   # RPC, clock, keys, balances, deployment
+   ```
+
+4. Point the web domain at `sufficia-web:3000`. An API domain at `sufficia-api:8000` is optional (reads, `/docs`,
+   `/health`). Keep the proxy's read timeout above 60 s: a protected execution waits for Monad confirmations.
+
+Runs and receipts persist in the `sufficia-data` volume (SQLite, `/data/sufficia.db`). For PostgreSQL, add
+`POSTGRES_PASSWORD` and `DATABASE_URL=postgresql://sufficia:<that password>@sufficia-postgres:5432/sufficia` to `.env`
+and start with `--profile postgres`. The server's clock must be NTP-synchronised: evidence expires after 30 s.

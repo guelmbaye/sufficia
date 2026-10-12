@@ -1,0 +1,22 @@
+# Build context of the API image (docker-compose*.yml: context ".", dockerfile apps/api/Dockerfile).
+# The image needs apps/api, demo and docs/evidence only. Secrets and local state never enter an image.
+.git
+**/.env
+**/.env.*
+!**/.env.example
+**/*.db
+**/*.db-*
+**/.venv
+**/venv
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+**/.hypothesis
+**/*.egg-info
+**/node_modules
+apps/web
+contracts
+packages
+tests
+deployments
+docs/evidence/screenshots

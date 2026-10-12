@@ -73,6 +73,37 @@ jobs:
       - run: python -m sufficia.benchmark --no-reports
         working-directory: apps/api
 
+  docker:
+    # The production images and docker-compose.prod.yml, end to end: build, start, Grand Prize through the web proxy.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the production images
+        run: |
+          printf 'API_KEY=ci-key\nCHAIN_MODE=LOCAL_EVM\n' > .env
+          docker network create proxy-network
+          docker network create sufficia-network
+          docker compose -f docker-compose.prod.yml build
+      - name: No secret or local state inside the API image
+        run: docker run --rm --entrypoint sh sufficia-api:latest -c 'test ! -e /srv/apps/api/.env && test ! -e /srv/apps/api/sufficia.db && test ! -d /srv/apps/web && echo clean'
+      - name: Start the stack (waits for both health checks)
+        run: docker compose -f docker-compose.prod.yml up -d --wait --wait-timeout 240
+      - name: Grand Prize through the web proxy (web -> API -> in-process EVM)
+        run: |
+          docker compose -f docker-compose.prod.yml exec -T web node -e "
+            fetch('http://127.0.0.1:3000/api/v1/demo/scenarios/grand-prize-v1/run', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })
+              .then((r) => r.json())
+              .then((d) => { console.log(d.final_state, d.passed); process.exit(d.passed === true && d.final_state === 'AUTHORIZE' ? 0 : 1); })
+              .catch((e) => { console.error(e); process.exit(1); });"
+      - name: Mutating requests without the key are refused by the API
+        run: |
+          docker compose -f docker-compose.prod.yml exec -T web node -e "
+            fetch('http://sufficia-api:8000/api/v1/intents', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{\"text\":\"x\"}' })
+              .then((r) => { console.log(r.status); process.exit(r.status === 401 ? 0 : 1); });"
+      - name: Logs
+        if: always()
+        run: docker compose -f docker-compose.prod.yml logs --no-color | tail -150
+
   web:
     runs-on: ubuntu-latest
     steps:

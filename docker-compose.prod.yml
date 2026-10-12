@@ -1,0 +1,83 @@
+# Production on a server behind a shared reverse proxy (docs/deployment.md §6).
+#
+#   docker network create proxy-network     # shared with the reverse proxy (once per server)
+#   docker network create sufficia-network  # SUFFICIA only
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Same images as docker-compose.yml (apps/api/Dockerfile, apps/web/Dockerfile). No port is published on the host:
+# the reverse proxy reaches sufficia-web:3000 and sufficia-api:8000 over proxy-network. Settings and the testnet
+# keys come from .env at the repository root (chmod 600, never committed). The deployer key stays off the server.
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: sufficia-api:latest
+    container_name: sufficia-api
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: true
+    environment:
+      CHAIN_MODE: ${CHAIN_MODE:-MONAD_TESTNET}
+      DEPLOYMENT_FILE: /srv/deployments/monad-testnet.json
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////data/sufficia.db}
+      # The API is only reachable through the reverse proxy: trust its X-Forwarded-For for client addresses.
+      FORWARDED_ALLOW_IPS: "*"
+    volumes:
+      - sufficia-data:/data
+      - ./deployments:/srv/deployments:ro
+    depends_on:
+      postgres:  # only with --profile postgres
+        condition: service_healthy
+        required: false
+    networks:
+      - sufficia-network
+      - proxy-network
+
+  web:
+    build:
+      context: apps/web
+    image: sufficia-web:latest
+    container_name: sufficia-web
+    restart: unless-stopped
+    environment:
+      # Read at runtime by the /api/v1 proxy; the browser never calls the API directly.
+      SUFFICIA_API_URL: http://sufficia-api:8000
+      SUFFICIA_API_KEY: ${API_KEY:?set API_KEY in .env}
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - sufficia-network
+      - proxy-network
+
+  # Optional: PostgreSQL instead of SQLite. `docker compose -f docker-compose.prod.yml --profile postgres up -d`
+  # with DATABASE_URL=postgresql://sufficia:<POSTGRES_PASSWORD>@sufficia-postgres:5432/sufficia in .env.
+  postgres:
+    image: postgres:16-alpine
+    container_name: sufficia-postgres
+    profiles: ["postgres"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sufficia
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+      POSTGRES_DB: sufficia
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sufficia"]
+      interval: 10s
+      retries: 10
+    networks:
+      - sufficia-network
+
+volumes:
+  sufficia-data:
+  pg-data:
+
+networks:
+  sufficia-network:
+    external: true
+  proxy-network:
+    external: true
