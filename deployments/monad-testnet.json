@@ -1,0 +1,29 @@
+{
+  "chain_id": 10143,
+  "gate": "0x1d8948F033d89A7943ab5B0886626CaA486390F6",
+  "usdc": "0x4104e82a7390446814EadF48D1d0cBC374044b38",
+  "token_x": "0xd603014FAC6c1B042C9E35897132D78cE8D23746",
+  "router": "0x59726E38704E01a5337FCAf02a462f861903Caa8",
+  "deployer": "0x86f3d85bC34F37a5C8935AeA97139EcF01d893FE",
+  "authorizer": "0x9f56d727fb79ea779A65117eb2E0063824BffbCb",
+  "pauser": "0x3a16487B40399854e8E9977bD263F2919B3E93De",
+  "executor": "0x4F6987f9417B00F12093419fD22E8bb26C54ad08",
+  "txs": {
+    "deploy_usdc": "0x3656a639dec227b80f87b54b1737159c9fea52b9ebcac43412cf6c89f90c0a05",
+    "deploy_token_x": "0x3d27df3aab46b34aa28d4d7469ac7be8c733840f85b51cf26066777b27883869",
+    "deploy_router": "0xef760718412f75d8e8adc399cdb2119d51affc6d8d78f520d86bf0695575f9e0",
+    "set_rate": "0x3431d7e797d63685421b09587b414507f0da1fbec89ef5896e456554826cda21",
+    "mint_router_reserve": "0x973823e8a62c475eaa4521084a3e5107065ec28d9a018180c9687fb60faf71f1",
+    "deploy_gate": "0xb9dd9ec1bae046a2e4420e231e987e6ed63ab7de9089caa16d82e9565e8b67f5",
+    "fund_gate": "0x71296a2583ae90f4b87e6e3711e72134f3cd5c4b398f42be22246d3811186e12"
+  },
+  "block_number": 69244573,
+  "deployed_at": "2026-10-08T11:36:12Z",
+  "network": "monad-testnet",
+  "usdc_decimals": 6,
+  "token_x_decimals": 18,
+  "rate_e18": "2336000000000000000",
+  "gate_usdc_funding": "100000000000",
+  "router_tokenx_reserve": "1000000000000000000000000",
+  "usdc_is_demo": true
+}
