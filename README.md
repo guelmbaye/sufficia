@@ -5,9 +5,11 @@
 **Autonomous agents can already spend money. SUFFICIA makes them prove they know enough before they spend it.**
 
 - **Bad evidence → DENIED.** Liquidity is $92,440; the principal required more than $500,000. No authorization is issued, `POST /decisions/{id}/execute` returns `403 EVIDENCE_AUTHORIZATION_REQUIRED`, and a receipt proves the money did not move.
-- **Good evidence → Monad execution.** Fresh, consistent, x402-paid evidence satisfies every requirement → a short-lived authorization bound to *this* evidence and *this exact action* is committed to the `EvidenceGate` contract → the action executes once → the receipt hash is committed onchain → the decision replays to `MATCH`.
+- **Good evidence → Monad execution.** Fresh, consistent evidence (liquidity acquired through x402) satisfies every requirement → a short-lived authorization bound to *this* evidence and *this exact action* is committed to the `EvidenceGate` contract → the action executes once → the receipt hash is committed onchain → the decision replays to `MATCH`.
 
 > Reasoning proposes. Evidence constrains. Policy decides. Authorization binds. Monad executes.
+
+**Live demo on Monad testnet:** [sufficia-web.onrender.com/demo](https://sufficia-web.onrender.com/demo) (free hosting: the first load can take up to 2 minutes). EvidenceGate [`0x1d8948F033d89A7943ab5B0886626CaA486390F6`](https://testnet.monadvision.com/address/0x1d8948F033d89A7943ab5B0886626CaA486390F6); deployment, authorization, execution and receipt transactions in [docs/evidence/04-monad-proof.md](docs/evidence/04-monad-proof.md).
 
 ---
 
