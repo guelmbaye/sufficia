@@ -40,8 +40,15 @@ export function toApiError(e: unknown): ApiError {
 
 type Fetcher = typeof fetch;
 
-export function createClient(base = "/api/v1", fetcher: Fetcher = (...a) => fetch(...a)) {
-  async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
+/* A hosting gateway (not the API) answers 502/503/504 with an HTML page while a sleeping instance wakes up. */
+const GATEWAY_STATUSES = new Set([502, 503, 504]);
+
+export function createClient(
+  base = "/api/v1",
+  fetcher: Fetcher = (...a) => fetch(...a),
+  { gatewayRetries = 3, retryDelayMs = 3_000 }: { gatewayRetries?: number; retryDelayMs?: number } = {},
+) {
+  async function call<T>(method: string, path: string, body?: unknown, attempt = 0): Promise<T> {
     let res: Response;
     try {
       res = await fetcher(`${base}${path}`, {
@@ -59,6 +66,13 @@ export function createClient(base = "/api/v1", fetcher: Fetcher = (...a) => fetc
       try {
         data = JSON.parse(text);
       } catch {
+        if (GATEWAY_STATUSES.has(res.status)) {
+          if (attempt < gatewayRetries) {
+            await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+            return call<T>(method, path, body, attempt + 1);
+          }
+          throw new ApiError(res.status, "API_UNREACHABLE", "The SUFFICIA API is not answering yet.");
+        }
         throw new ApiError(res.status, "INVALID_RESPONSE", `The API returned a non-JSON response (${res.status}).`);
       }
     }

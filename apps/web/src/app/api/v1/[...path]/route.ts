@@ -15,10 +15,27 @@ function apiBase(): string {
   return (process.env.SUFFICIA_API_URL ?? "http://127.0.0.1:8000").replace(/\/+$/, "");
 }
 
-/* A hosted API on a free plan may be asleep: its first answer can take about a minute. */
-function apiTimeoutMs(): number {
-  const value = Number(process.env.SUFFICIA_API_TIMEOUT_MS);
-  return Number.isFinite(value) && value > 0 ? value : 60_000;
+/* A hosted API on a free plan may be asleep: its first answer can take about a minute, and while it boots the
+   hosting platform's gateway can answer 502/503/504 with an HTML page. Those answers (and connection failures)
+   are retried until SUFFICIA_API_TIMEOUT_MS; an answer from the API itself (JSON) is always passed through. */
+function envMs(name: string, fallback: number): number {
+  const value = Number(process.env[name]);
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
+const GATEWAY_STATUSES = new Set([502, 503, 504]);
+
+function isGatewayError(res: Response): boolean {
+  return GATEWAY_STATUSES.has(res.status) && !(res.headers.get("content-type") ?? "").includes("application/json");
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function unreachable(): Response {
+  return Response.json(
+    { error: { code: "API_UNREACHABLE", message: "The SUFFICIA API is not answering yet." } },
+    { status: 502, headers: { "cache-control": "no-store" } },
+  );
 }
 
 async function proxy(req: Request, ctx: { params: Promise<{ path: string[] }> }): Promise<Response> {
@@ -35,21 +52,30 @@ async function proxy(req: Request, ctx: { params: Promise<{ path: string[] }> })
   if (key) headers.set("x-api-key", key);
 
   const hasBody = req.method !== "GET" && req.method !== "HEAD";
-  let upstream: Response;
-  try {
-    upstream = await fetch(target, {
-      method: req.method,
-      headers,
-      body: hasBody ? await req.arrayBuffer() : undefined,
-      cache: "no-store",
-      redirect: "manual",
-      signal: AbortSignal.timeout(apiTimeoutMs()),
-    });
-  } catch {
-    return Response.json(
-      { error: { code: "API_UNREACHABLE", message: "The SUFFICIA API cannot be reached from the web server." } },
-      { status: 502, headers: { "cache-control": "no-store" } },
-    );
+  const body = hasBody ? await req.arrayBuffer() : undefined;
+  const deadline = Date.now() + envMs("SUFFICIA_API_TIMEOUT_MS", 60_000);
+  let delay = envMs("SUFFICIA_API_RETRY_MS", 1_500);
+  let upstream: Response | null = null;
+  for (;;) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) return unreachable();
+    try {
+      upstream = await fetch(target, {
+        method: req.method,
+        headers,
+        body,
+        cache: "no-store",
+        redirect: "manual",
+        signal: AbortSignal.timeout(remaining),
+      });
+    } catch {
+      upstream = null;
+    }
+    if (upstream && !isGatewayError(upstream)) break;
+    await upstream?.body?.cancel().catch(() => undefined);
+    if (Date.now() + delay >= deadline) return unreachable();
+    await sleep(delay);
+    delay = Math.min(delay * 2, 8_000);
   }
 
   const out = new Headers();

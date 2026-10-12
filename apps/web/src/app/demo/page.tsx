@@ -21,8 +21,11 @@ export default function DemoPage() {
     if (started.current) return;
     started.current = true;
     reset();
+    // Wake a sleeping hosted API with a cheap read first, so the scenario is not the request that waits.
     api
-      .runScenario(GRAND_PRIZE_SCENARIO, { stop_before: "market" })
+      .system()
+      .catch(() => undefined)
+      .then(() => api.runScenario(GRAND_PRIZE_SCENARIO, { stop_before: "market" }))
       .then((run) => {
         const decide = [...run.timeline].reverse().find((s) => s.op === "decide");
         update({

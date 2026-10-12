@@ -19,8 +19,23 @@ describe("API client", () => {
     expect((err as ApiError).code).toBe("API_UNREACHABLE");
   });
   it("rejects non-JSON responses", async () => {
-    const api = createClient("/api/v1", respond(502, "<html>bad gateway</html>"));
+    const api = createClient("/api/v1", respond(200, "<html>not the API</html>"));
     await expect(api.system()).rejects.toMatchObject({ code: "INVALID_RESPONSE" });
+  });
+  it("retries a gateway error page, then reports the API as unreachable", async () => {
+    let calls = 0;
+    const fetcher = (async () => {
+      calls += 1;
+      return new Response("<html>bad gateway</html>", { status: 502 });
+    }) as unknown as typeof fetch;
+    const api = createClient("/api/v1", fetcher, { gatewayRetries: 2, retryDelayMs: 0 });
+    await expect(api.system()).rejects.toMatchObject({ status: 502, code: "API_UNREACHABLE" });
+    expect(calls).toBe(3);
+  });
+  it("recovers when the API answers after a gateway error page", async () => {
+    const answers = [new Response("<html>bad gateway</html>", { status: 503 }), new Response('{"version":"1.0.0"}', { status: 200 })];
+    const api = createClient("/api/v1", (async () => answers.shift()) as unknown as typeof fetch, { retryDelayMs: 0 });
+    await expect(api.system()).resolves.toMatchObject({ version: "1.0.0" });
   });
   it("builds exact paths with encoded ids", async () => {
     let seen = "";

@@ -51,10 +51,43 @@ describe("API proxy route", () => {
     expect(init.body).toBeUndefined();
   });
 
-  it("answers 502 API_UNREACHABLE when the API is down", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(new TypeError("fetch failed"))));
+  it("answers 502 API_UNREACHABLE when the API stays down until the timeout", async () => {
+    vi.stubEnv("SUFFICIA_API_TIMEOUT_MS", "60");
+    vi.stubEnv("SUFFICIA_API_RETRY_MS", "10");
+    const fetchMock = vi.fn(async () => Promise.reject(new TypeError("fetch failed")));
+    vi.stubGlobal("fetch", fetchMock);
     const res = await GET(new Request("http://web/api/v1/system"), ctx("system"));
     expect(res.status).toBe(502);
     expect(((await res.json()) as { error: { code: string } }).error.code).toBe("API_UNREACHABLE");
+    expect(fetchMock.mock.calls.length).toBeGreaterThan(1);
+  });
+
+  it("retries a hosting gateway's error page while the API wakes up, then passes the answer through", async () => {
+    vi.stubEnv("SUFFICIA_API_TIMEOUT_MS", "5000");
+    vi.stubEnv("SUFFICIA_API_RETRY_MS", "1");
+    const answers = [
+      new Response("<html>502 Bad Gateway</html>", { status: 502, headers: { "content-type": "text/html" } }),
+      new Response('{"passed":true}', { status: 200, headers: { "content-type": "application/json" } }),
+    ];
+    const fetchMock = vi.fn(async () => answers.shift() as Response);
+    vi.stubGlobal("fetch", fetchMock);
+    const req = new Request("http://web/api/v1/demo/scenarios/grand-prize-v1/run", { method: "POST", body: '{"stop_before":"market"}' });
+    const res = await POST(req, ctx("demo", "scenarios", "grand-prize-v1", "run"));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ passed: true });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const second = fetchMock.mock.calls[1] as unknown as [string, RequestInit];
+    expect(new TextDecoder().decode(second[1].body as ArrayBuffer)).toBe('{"stop_before":"market"}');
+  });
+
+  it("passes the API's own JSON errors through without retrying", async () => {
+    vi.stubEnv("SUFFICIA_API_RETRY_MS", "1");
+    const fetchMock = vi.fn(
+      async () => new Response('{"error":{"code":"CHAIN_UNAVAILABLE"}}', { status: 503, headers: { "content-type": "application/json" } }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const res = await GET(new Request("http://web/api/v1/system"), ctx("system"));
+    expect(res.status).toBe(503);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
