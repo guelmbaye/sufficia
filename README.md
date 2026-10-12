@@ -9,7 +9,7 @@
 
 > Reasoning proposes. Evidence constrains. Policy decides. Authorization binds. Monad executes.
 
-**Live demo on Monad testnet:** [sufficia-web.onrender.com/demo](https://sufficia-web.onrender.com/demo) (free hosting: the first load can take up to 2 minutes). EvidenceGate [`0x1d8948F033d89A7943ab5B0886626CaA486390F6`](https://testnet.monadvision.com/address/0x1d8948F033d89A7943ab5B0886626CaA486390F6); deployment, authorization, execution and receipt transactions in [docs/evidence/04-monad-proof.md](docs/evidence/04-monad-proof.md).
+**Live demo on Monad testnet:** [sufficia.vylantic.com/demo](https://sufficia.vylantic.com/demo) · public read-only API [api.sufficia.vylantic.com](https://api.sufficia.vylantic.com/docs). EvidenceGate [`0x1d8948F033d89A7943ab5B0886626CaA486390F6`](https://testnet.monadvision.com/address/0x1d8948F033d89A7943ab5B0886626CaA486390F6); deployment, authorization, execution and receipt transactions in [docs/evidence/04-monad-proof.md](docs/evidence/04-monad-proof.md).
 
 ---
 
