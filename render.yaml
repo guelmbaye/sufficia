@@ -10,7 +10,8 @@ services:
     region: frankfurt
     # No rootDir: the API reads demo/scenarios, docs/evidence and deployments/ at the repository root.
     buildCommand: pip install -e apps/api
-    startCommand: cd apps/api && uvicorn sufficia.api.app:app --host 0.0.0.0 --port $PORT --workers 1
+    # Keep idle connections open longer than Render's proxy does, so it never reuses one the app has closed (502).
+    startCommand: cd apps/api && uvicorn sufficia.api.app:app --host 0.0.0.0 --port $PORT --workers 1 --timeout-keep-alive 75
     healthCheckPath: /health
     buildFilter:
       ignoredPaths:
@@ -50,7 +51,7 @@ services:
     region: frankfurt
     rootDir: apps/web
     buildCommand: npm ci && npm run build
-    startCommand: npx next start --hostname 0.0.0.0 --port $PORT
+    startCommand: npx next start --hostname 0.0.0.0 --port $PORT --keepAliveTimeout 75000
     healthCheckPath: /
     envVars:
       - key: NODE_VERSION
