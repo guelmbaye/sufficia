@@ -80,6 +80,24 @@ describe("API proxy route", () => {
     expect(new TextDecoder().decode(second[1].body as ArrayBuffer)).toBe('{"stop_before":"market"}');
   });
 
+  it("gives up on a stuck read after SUFFICIA_API_ATTEMPT_MS and tries again", async () => {
+    vi.stubEnv("SUFFICIA_API_TIMEOUT_MS", "5000");
+    vi.stubEnv("SUFFICIA_API_ATTEMPT_MS", "30");
+    vi.stubEnv("SUFFICIA_API_RETRY_MS", "1");
+    let calls = 0;
+    const fetchMock = vi.fn(async (_url: string, init: RequestInit) => {
+      calls += 1;
+      if (calls === 1) {
+        return new Promise<Response>((_resolve, reject) => init.signal?.addEventListener("abort", () => reject(new Error("aborted"))));
+      }
+      return new Response('{"version":"1.0.0"}', { status: 200, headers: { "content-type": "application/json" } });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const res = await GET(new Request("http://web/api/v1/system"), ctx("system"));
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it("passes the API's own JSON errors through without retrying", async () => {
     vi.stubEnv("SUFFICIA_API_RETRY_MS", "1");
     const fetchMock = vi.fn(

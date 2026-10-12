@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { api, type ApiError, toApiError } from "./api";
 import type { SystemInfo } from "./types";
+import { wakeApi } from "./wake";
 
 /** Milliseconds left until `expiresAt`, ticking every 250 ms; null when there is no deadline. */
 export function useCountdown(expiresAt: string | null | undefined): number | null {
@@ -38,6 +39,7 @@ export function useSystem(): { system: SystemInfo | null; error: ApiError | null
   const [error, setError] = useState<ApiError | null>(null);
   useEffect(() => {
     let alive = true;
+    void wakeApi();
     systemCache ??= api.system();
     systemCache
       .then((s) => alive && setSystem(s))

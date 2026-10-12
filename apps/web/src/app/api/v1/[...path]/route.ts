@@ -55,6 +55,8 @@ async function proxy(req: Request, ctx: { params: Promise<{ path: string[] }> })
   const body = hasBody ? await req.arrayBuffer() : undefined;
   const deadline = Date.now() + envMs("SUFFICIA_API_TIMEOUT_MS", 60_000);
   let delay = envMs("SUFFICIA_API_RETRY_MS", 1_500);
+  const idempotent = req.method === "GET" || req.method === "HEAD";
+  const attemptMs = envMs("SUFFICIA_API_ATTEMPT_MS", 15_000);
   let upstream: Response | null = null;
   for (;;) {
     const remaining = deadline - Date.now();
@@ -66,7 +68,8 @@ async function proxy(req: Request, ctx: { params: Promise<{ path: string[] }> })
         body,
         cache: "no-store",
         redirect: "manual",
-        signal: AbortSignal.timeout(remaining),
+        // A read can be retried safely, so it never waits on one stuck connection; a write waits for its answer.
+        signal: AbortSignal.timeout(idempotent ? Math.min(remaining, attemptMs) : remaining),
       });
     } catch {
       upstream = null;
