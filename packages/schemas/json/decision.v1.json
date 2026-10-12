@@ -18,7 +18,6 @@
           "type": "string"
         },
         "ttl_seconds": {
-          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
           "title": "Ttl Seconds",
           "type": "string"
         }
@@ -50,7 +49,6 @@
         "age_seconds": {
           "anyOf": [
             {
-              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
               "type": "string"
             },
             {
@@ -428,7 +426,6 @@
       "type": "string"
     },
     "coverage": {
-      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
       "title": "Coverage",
       "type": "string"
     },
@@ -453,7 +450,6 @@
       "type": "array"
     },
     "evidence_cost_usd": {
-      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
       "title": "Evidence Cost Usd",
       "type": "string"
     },

@@ -18,7 +18,6 @@
           "type": "string"
         },
         "value": {
-          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
           "title": "Value",
           "type": "string"
         }

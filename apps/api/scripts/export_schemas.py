@@ -30,17 +30,30 @@ MODELS = {
 }
 
 
+# pydantic < 2.14 adds this regex to every decimal serialized as a string; 2.14+ does not. Dropping it keeps the
+# committed schemas identical whichever pydantic version generates them (the CI gate compares them byte for byte).
+PYDANTIC_DECIMAL_PATTERN = r"^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$"
+
+
+def _normalize(node):
+    if isinstance(node, dict):
+        return {k: _normalize(v) for k, v in node.items() if not (k == "pattern" and v == PYDANTIC_DECIMAL_PATTERN)}
+    if isinstance(node, list):
+        return [_normalize(v) for v in node]
+    return node
+
+
 def render() -> dict[Path, str]:
     out: dict[Path, str] = {}
     base = ROOT / "packages" / "schemas"
     for name, model in MODELS.items():
-        schema = model.model_json_schema(mode="serialization")
+        schema = _normalize(model.model_json_schema(mode="serialization"))
         schema["$id"] = f"https://sufficia.dev/schemas/{name}.v1.json"
         out[base / "json" / f"{name}.v1.json"] = json.dumps(schema, indent=2, sort_keys=True) + "\n"
     from sufficia.api.app import create_app
 
     app = create_app(Settings(database_url="sqlite://", chain_mode="DISABLED", _env_file=None, log_level="WARNING"))
-    out[base / "openapi.json"] = json.dumps(app.openapi(), indent=2, sort_keys=True) + "\n"
+    out[base / "openapi.json"] = json.dumps(_normalize(app.openapi()), indent=2, sort_keys=True) + "\n"
     return out
 
 

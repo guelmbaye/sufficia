@@ -20,7 +20,6 @@
         },
         "cost_spent": {
           "default": "0",
-          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
           "title": "Cost Spent",
           "type": "string"
         },
@@ -170,7 +169,6 @@
       "properties": {
         "cost": {
           "default": "0",
-          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
           "title": "Cost",
           "type": "string"
         },
@@ -365,7 +363,6 @@
         "quoted_amount": {
           "anyOf": [
             {
-              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
               "type": "string"
             },
             {
@@ -390,7 +387,6 @@
         "settled_amount": {
           "anyOf": [
             {
-              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
               "type": "string"
             },
             {

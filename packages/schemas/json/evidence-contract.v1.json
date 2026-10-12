@@ -79,12 +79,10 @@
       "properties": {
         "max_evidence_cost_usd": {
           "default": "0.25",
-          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
           "title": "Max Evidence Cost Usd",
           "type": "string"
         },
         "max_execution_value_usd": {
-          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
           "title": "Max Execution Value Usd",
           "type": "string"
         }
@@ -126,7 +124,6 @@
           "type": "string"
         },
         "value": {
-          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
           "title": "Value",
           "type": "string"
         }
@@ -165,7 +162,6 @@
         },
         "conflict_tolerance": {
           "default": "0.10",
-          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
           "title": "Conflict Tolerance",
           "type": "string"
         },
@@ -226,7 +222,6 @@
         "threshold": {
           "anyOf": [
             {
-              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
               "type": "string"
             },
             {

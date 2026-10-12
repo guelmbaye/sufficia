@@ -21,7 +21,6 @@
           "type": "string"
         },
         "value": {
-          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
           "title": "Value",
           "type": "string"
         }
@@ -150,7 +149,6 @@
         "amount": {
           "anyOf": [
             {
-              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
               "type": "string"
             },
             {
@@ -280,7 +278,6 @@
       "type": "string"
     },
     "coverage": {
-      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
       "title": "Coverage",
       "type": "string"
     },
@@ -317,7 +314,6 @@
       "type": "array"
     },
     "evidence_cost_usdc": {
-      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
       "title": "Evidence Cost Usdc",
       "type": "string"
     },
